@@ -375,6 +375,7 @@ tr:hover td{background:#f8fafc;}
 
 <!-- ══ 6. 업무 로그 ══ -->
 <div id="section-worklog" class="section">
+  <div id="worklog-report-banner" style="margin-bottom:12px;"></div>
   <div class="card" style="margin-bottom:16px;">
     <div class="card-title">📝 업무 입력</div>
     <div class="form-grid">
@@ -476,7 +477,7 @@ tr:hover td{background:#f8fafc;}
 </div>
 
 <!-- ══ 수임 파이프라인 ══ -->
-<div id="section-pipeline" class="section">
+<div id="section-pipeline" class="section" style="min-height:400px;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
     <div style="font-size:13px;color:#6b7280;">광고 리드부터 기장 시작까지 진행 현황을 단계별로 관리합니다.</div>
     <button class="btn btn-p" onclick="openLeadModal()">+ 신규 리드 등록</button>
@@ -503,6 +504,10 @@ tr:hover td{background:#f8fafc;}
           <textarea id="dr-help" placeholder="도움이 필요한 사항 (없으면 '없음')" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
         </div>
         <div id="dr-end-fields" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11.5px;color:#6b7280;">처리 완료 업무</span>
+            <button class="btn btn-o btn-sm" onclick="autoFillFromLog()" style="font-size:11px;padding:3px 8px;">📋 오늘 로그 자동 불러오기</button>
+          </div>
           <textarea id="dr-done" placeholder="오늘 처리 완료된 업체 및 업무" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:70px;resize:none;box-sizing:border-box;"></textarea>
           <textarea id="dr-undone" placeholder="처리 못한 항목 + 사유" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
           <textarea id="dr-tomorrow" placeholder="내일 처리 예정" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
@@ -514,6 +519,13 @@ tr:hover td{background:#f8fafc;}
       <div class="card-title">📊 오늘 보고 현황 <span id="dr-today-summary" style="font-size:11px;color:#6b7280;font-weight:400;"></span></div>
       <div id="dr-today-status"></div>
     </div>
+  </div>
+  <div id="dr-log-summary-card" style="display:none;margin-bottom:18px;" class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div class="card-title" style="margin:0;">📊 오늘 내 업무 로그 <span id="dr-log-count" style="font-size:11px;color:#6b7280;font-weight:400;"></span></div>
+      <span style="font-size:11px;color:#9ca3af;">업무 로그에서 자동 연동</span>
+    </div>
+    <div id="dr-log-summary-content"></div>
   </div>
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -536,10 +548,14 @@ tr:hover td{background:#f8fafc;}
       <label style="font-size:13px;font-weight:600;color:var(--navy);">기준 월:</label>
       <input type="month" id="kpi-month" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;" onchange="renderKPI()">
     </div>
-    <button class="btn btn-p" onclick="openKPIInputModal()">+ KPI 실적 입력</button>
+    <span style="font-size:11.5px;color:#9ca3af;">📌 값 입력 후 포커스 이탈 시 자동 저장</span>
   </div>
-  <div class="stat-grid" id="kpi-stat-grid"></div>
-  <div class="two-col" style="margin-top:18px;">
+  <div class="stat-grid" id="kpi-stat-grid" style="margin-bottom:18px;"></div>
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title" style="margin-bottom:12px;">📝 KPI 실적 직접 입력</div>
+    <div id="kpi-inline-editor"></div>
+  </div>
+  <div class="two-col" style="margin-top:0;">
     <div class="card"><div class="card-title">📊 직원별 KPI 달성률</div><canvas id="kpiChart" height="240"></canvas></div>
     <div class="card"><div class="card-title">📋 KPI 기준표</div>
       <table style="width:100%;font-size:12px;border-collapse:collapse;">
@@ -556,6 +572,9 @@ tr:hover td{background:#f8fafc;}
 
 <!-- ══ 손익 현황 ══ -->
 <div id="section-finance" class="section">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+    <button class="btn btn-o" onclick="openFinPlanEditModal()">✏️ 월별 계획 수치 수정</button>
+  </div>
   <div class="stat-grid" id="fin-stat-grid" style="margin-bottom:18px;"></div>
   <div class="two-col">
     <div class="card">
@@ -948,7 +967,7 @@ tr:hover td{background:#f8fafc;}
 </div>
 
 <!-- ══ 공용 모달 (파이프라인·KPI·손익 입력용) ══ -->
-<div class="modal-bg" id="generic-modal" style="display:none;">
+<div class="modal-bg" id="generic-modal">
   <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto;">
     <div class="modal-title" id="generic-modal-title">입력</div>
     <div id="generic-modal-body" style="padding:4px 0;"></div>
@@ -2987,6 +3006,23 @@ function clearLogForm() {
 }
 function deleteLog(id) { db.logs = db.logs.filter(l => l.id !== id); save(); renderLogs(); updateNotifs(); }
 function renderLogs() {
+  // 오늘 보고 현황 배너
+  const bannerEl = document.getElementById('worklog-report-banner');
+  if (bannerEl && currentUser) {
+    const today = new Date().toISOString().slice(0,10);
+    const myReports = db.dailyReports.filter(r => r.date === today && r.staff === currentUser.name);
+    const hasStart = myReports.some(r => r.type === 'start');
+    const hasEnd   = myReports.some(r => r.type === 'end');
+    bannerEl.style.display = '';
+    bannerEl.innerHTML = `<div style="background:${!hasStart?'#fff7ed':hasEnd?'#f0fdf4':'#eff6ff'};border:1px solid ${!hasStart?'#fed7aa':hasEnd?'#bbf7d0':'#bfdbfe'};border-radius:8px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div style="font-size:12.5px;color:#374151;">📋 <strong>${currentUser.name}</strong>님의 오늘(${today}) 업무 보고 현황</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="padding:3px 12px;border-radius:8px;font-size:11.5px;background:${hasStart?'#d1fae5':'#fee2e2'};color:${hasStart?'#065f46':'#991b1b'};">${hasStart?'✅ 시작보고 완료':'❌ 시작보고 미제출'}</span>
+        <span style="padding:3px 12px;border-radius:8px;font-size:11.5px;background:${hasEnd?'#dbeafe':'#f1f5f9'};color:${hasEnd?'#1e40af':'#6b7280'};">${hasEnd?'✅ 종료보고 완료':'⏳ 종료보고 대기'}</span>
+        ${!hasStart ? `<button class="btn btn-p btn-sm" style="font-size:11px;padding:3px 10px;" onclick="goTo('dailyreport')">보고 작성하기</button>` : ''}
+      </div>
+    </div>`;
+  }
   const fm = document.getElementById('log-filter-month')?.value || '';
   const fsel = document.getElementById('log-filter-staff');
   if (fsel) { const cv = fsel.value; fsel.innerHTML = '<option value="">전체</option>' + getEmps().map(e => `<option ${e.name===cv?'selected':''}>${e.name}</option>`).join(''); }
@@ -3445,7 +3481,7 @@ function openLeadModal() {
   </div>`;
   document.getElementById('generic-modal-title').textContent = '🚀 신규 리드 등록';
   document.getElementById('generic-modal-body').innerHTML = html;
-  document.getElementById('generic-modal').style.display = 'flex';
+  document.getElementById('generic-modal').classList.add('open');
 }
 function saveLead() {
   const name = document.getElementById('nl-name').value.trim();
@@ -3523,6 +3559,44 @@ function renderDailyReport() {
         </div>`;
       }).join('');
   }
+  // 오늘 내 업무 로그 연동 카드
+  const logCardEl = document.getElementById('dr-log-summary-card');
+  const logContentEl = document.getElementById('dr-log-summary-content');
+  const logCountEl = document.getElementById('dr-log-count');
+  if (logCardEl && currentUser) {
+    const todayLogs = db.logs.filter(l => l.date === today && l.staff === currentUser.name);
+    if (todayLogs.length > 0) {
+      logCardEl.style.display = '';
+      if (logCountEl) logCountEl.textContent = `(${currentUser.name} · 오늘 ${todayLogs.length}건)`;
+      const done = todayLogs.filter(l => l.status === '완료');
+      const prog = todayLogs.filter(l => l.status === '진행중');
+      const todo = todayLogs.filter(l => l.status === '미착수');
+      const totalH = todayLogs.reduce((s,l) => s+Number(l.hours||0), 0);
+      logContentEl.innerHTML = `
+        <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+          <span style="padding:4px 12px;background:#d1fae5;color:#065f46;border-radius:8px;font-size:12px;">✅ 완료 ${done.length}건</span>
+          <span style="padding:4px 12px;background:#dbeafe;color:#1e40af;border-radius:8px;font-size:12px;">🔄 진행중 ${prog.length}건</span>
+          <span style="padding:4px 12px;background:#f1f5f9;color:#6b7280;border-radius:8px;font-size:12px;">⏳ 미착수 ${todo.length}건</span>
+          <span style="padding:4px 12px;background:#fef3c7;color:#92400e;border-radius:8px;font-size:12px;">⏱️ 총 ${totalH.toFixed(1)}h</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;font-size:12px;border-collapse:collapse;">
+            <thead><tr style="background:#f8fafc;"><th style="padding:6px 10px;text-align:left;border-bottom:1px solid #e2e8f0;">업체명</th><th style="padding:6px 8px;text-align:center;border-bottom:1px solid #e2e8f0;">업무유형</th><th style="padding:6px 8px;text-align:center;border-bottom:1px solid #e2e8f0;">건수</th><th style="padding:6px 8px;text-align:center;border-bottom:1px solid #e2e8f0;">시간</th><th style="padding:6px 8px;text-align:center;border-bottom:1px solid #e2e8f0;">상태</th><th style="padding:6px 8px;text-align:left;border-bottom:1px solid #e2e8f0;">비고</th></tr></thead>
+            <tbody>${todayLogs.map(l => `<tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="padding:6px 10px;font-weight:600;">${l.client}</td>
+              <td style="padding:6px 8px;text-align:center;">${l.type}</td>
+              <td style="padding:6px 8px;text-align:center;">${l.count}건</td>
+              <td style="padding:6px 8px;text-align:center;">${l.hours}h</td>
+              <td style="padding:6px 8px;text-align:center;"><span class="badge ${l.status==='완료'?'b-done':l.status==='진행중'?'b-prog':'b-todo'}">${l.status}</span></td>
+              <td style="padding:6px 8px;color:#6b7280;font-size:11.5px;">${l.note||''}</td>
+            </tr>`).join('')}</tbody>
+          </table>
+        </div>`;
+    } else {
+      logCardEl.style.display = 'none';
+    }
+  }
+
   // 보고 이력
   let reports = [...db.dailyReports].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
   const filterStaff = document.getElementById('dr-filter-staff')?.value;
@@ -3571,6 +3645,18 @@ function submitDailyReport() {
   renderDailyReport();
 }
 
+function autoFillFromLog() {
+  if (!currentUser) { alert('로그인이 필요합니다.'); return; }
+  const today = new Date().toISOString().slice(0,10);
+  const todayLogs = db.logs.filter(l => l.date === today && l.staff === currentUser.name && l.status === '완료');
+  if (todayLogs.length === 0) {
+    alert('오늘 완료 처리된 업무 로그가 없습니다.\n업무 로그에서 완료 상태로 등록한 항목이 연동됩니다.');
+    return;
+  }
+  const text = todayLogs.map(l => `· ${l.client} - ${l.type} (${l.count}건, ${l.hours}h)${l.note ? ' ['+l.note+']' : ''}`).join('\n');
+  document.getElementById('dr-done').value = text;
+}
+
 // ════════════════════════════════════════════════════
 // ④ KPI 모니터링
 // ════════════════════════════════════════════════════
@@ -3585,6 +3671,7 @@ function renderKPI() {
   const monthEl = document.getElementById('kpi-month');
   if (monthEl && !monthEl.value) monthEl.value = new Date().toISOString().slice(0,7);
   const month = document.getElementById('kpi-month')?.value || new Date().toISOString().slice(0,7);
+  renderKPIInlineEditor();
   const monthData = db.kpiLogs.filter(k => k.month === month);
 
   // 전체 평균 stat
@@ -3631,6 +3718,70 @@ function renderKPI() {
     }</tbody></table>`;
   }
 }
+function renderKPIInlineEditor() {
+  const month = document.getElementById('kpi-month')?.value || new Date().toISOString().slice(0,7);
+  const emps = getEmps();
+  const editorEl = document.getElementById('kpi-inline-editor');
+  if (!editorEl) return;
+  if (emps.length === 0) {
+    editorEl.innerHTML = '<p style="color:#9ca3af;font-size:12px;text-align:center;padding:16px;">직원 정보가 없습니다. 직원/권한 관리에서 직원을 추가하세요.</p>';
+    return;
+  }
+  const monthData = db.kpiLogs.filter(k => k.month === month);
+  editorEl.innerHTML = `<div style="overflow-x:auto;">
+    <table style="width:100%;font-size:12px;border-collapse:collapse;min-width:520px;">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1.5px solid #e2e8f0;white-space:nowrap;min-width:90px;">직원</th>
+          ${KPI_TARGETS.map(kpi => `<th style="padding:8px 8px;text-align:center;border-bottom:1.5px solid #e2e8f0;white-space:nowrap;font-size:11.5px;min-width:110px;">${kpi.label}<br><span style="font-weight:400;color:#9ca3af;font-size:10.5px;">목표: ${kpi.target}${kpi.unit}</span></th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${emps.map(e => {
+          const existing = monthData.find(k=>k.staff===e.name) || {};
+          return `<tr style="border-bottom:1px solid #f1f5f9;" id="kpi-row-${e.name.replace(/\s/g,'_')}">
+            <td style="padding:8px 12px;font-weight:600;color:var(--navy);white-space:nowrap;">👤 ${e.name}</td>
+            ${KPI_TARGETS.map(kpi => {
+              const val = existing[kpi.key] !== undefined ? existing[kpi.key] : '';
+              const ok = val !== '' && (kpi.inverse ? Number(val) <= kpi.target : Number(val) >= kpi.target);
+              const bg = val === '' ? '#f8fafc' : ok ? '#dcfce7' : '#fee2e2';
+              const color = val === '' ? '#374151' : ok ? '#166534' : '#991b1b';
+              return `<td style="padding:6px 8px;text-align:center;">
+                <input type="number" step="0.1"
+                  value="${val}"
+                  placeholder="-"
+                  data-month="${month}" data-staff="${e.name}" data-key="${kpi.key}" data-inverse="${kpi.inverse||false}" data-target="${kpi.target}"
+                  onblur="saveKPICell(this)"
+                  oninput="const v=this.value,ok=v!==''&&(this.dataset.inverse==='true'?Number(v)<=Number(this.dataset.target):Number(v)>=Number(this.dataset.target));this.style.background=v===''?'#f8fafc':ok?'#dcfce7':'#fee2e2';this.style.color=v===''?'#374151':ok?'#166534':'#991b1b';"
+                  style="width:90px;padding:5px 6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12.5px;text-align:center;background:${bg};color:${color};transition:background .2s;box-sizing:border-box;">
+              </td>`;
+            }).join('')}
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+function saveKPICell(inputEl) {
+  const month = inputEl.dataset.month;
+  const staff = inputEl.dataset.staff;
+  const key   = inputEl.dataset.key;
+  const val   = inputEl.value.trim();
+  let existing = db.kpiLogs.find(k => k.month === month && k.staff === staff);
+  if (!existing) { existing = { id: Date.now() + Math.random(), month, staff }; db.kpiLogs.push(existing); }
+  if (val !== '') existing[key] = Number(val);
+  else delete existing[key];
+  save();
+  // stat card / chart 갱신 (인라인 에디터는 유지)
+  const monthData = db.kpiLogs.filter(k => k.month === month);
+  const statEl = document.getElementById('kpi-stat-grid');
+  if (statEl) statEl.innerHTML = KPI_TARGETS.map(kpi => {
+    const allVals = monthData.filter(d => d[kpi.key] !== undefined).map(d => Number(d[kpi.key]));
+    const avg = allVals.length ? (allVals.reduce((a,b)=>a+b,0)/allVals.length).toFixed(1) : '-';
+    const ok = avg !== '-' && (kpi.inverse ? Number(avg) <= kpi.target : Number(avg) >= kpi.target);
+    return `<div class="stat-card ${ok?'g':'r'}"><div class="lbl">${kpi.label}</div><div class="val">${avg}<span style="font-size:13px;">${avg!=='-'?kpi.unit:''}</span></div><div class="sub">목표: ${kpi.target}${kpi.unit}</div></div>`;
+  }).join('');
+}
 function openKPIInputModal() {
   const month = document.getElementById('kpi-month')?.value || new Date().toISOString().slice(0,7);
   const emps = getEmps();
@@ -3647,7 +3798,7 @@ function openKPIInputModal() {
   <div style="text-align:right;"><button class="btn btn-p" onclick="saveKPIData('${month}')">저장</button></div>`;
   document.getElementById('generic-modal-title').textContent = '🎯 KPI 실적 입력';
   document.getElementById('generic-modal-body').innerHTML = html;
-  document.getElementById('generic-modal').style.display = 'flex';
+  document.getElementById('generic-modal').classList.add('open');
 }
 function saveKPIData(month) {
   getEmps().forEach(e => {
@@ -3665,7 +3816,7 @@ function saveKPIData(month) {
 // ════════════════════════════════════════════════════
 // ⑤ 손익 현황
 // ════════════════════════════════════════════════════
-const FIN_PLAN = [
+const FIN_PLAN_DEFAULT = [
   { month:'2026-04', targetClients:130, revenue:11440000, acquisitionCost:16000000 },
   { month:'2026-05', targetClients:210, revenue:18480000, acquisitionCost:32000000 },
   { month:'2026-06', targetClients:310, revenue:27280000, acquisitionCost:52000000 },
@@ -3675,12 +3826,21 @@ const FIN_PLAN = [
   { month:'2026-10', targetClients:550, revenue:48400000, acquisitionCost:48000000 },
   { month:'2026-11', targetClients:550, revenue:48400000, acquisitionCost:28000000 },
 ];
+function getFINPlan() {
+  const saved = localStorage.getItem('sw3_fin_plan');
+  return saved ? JSON.parse(saved) : FIN_PLAN_DEFAULT;
+}
+function saveFINPlan(plan) {
+  localStorage.setItem('sw3_fin_plan', JSON.stringify(plan));
+  // Firebase에도 저장
+  if (fbDb) { fbDb.ref('seowol/finPlan').set(plan); }
+}
 function renderFinance() {
   // 현재 실제 기장 업체 수 & 기장료
   const activeClients = db.clients.filter(c => c.contractType === '기장' && c.status === '정상');
   const actualRevenue  = activeClients.reduce((s,c) => s+(Number(c.fee)||0), 0);
   const curMonth = new Date().toISOString().slice(0,7);
-  const plan = FIN_PLAN.find(p => p.month === curMonth) || FIN_PLAN[0];
+  const plan = getFINPlan().find(p => p.month === curMonth) || getFINPlan()[0];
   const revProgress = plan ? Math.round(actualRevenue / plan.revenue * 100) : 0;
   const clientProgress = plan ? Math.round(activeClients.length / plan.targetClients * 100) : 0;
 
@@ -3699,8 +3859,8 @@ function renderFinance() {
   `;
 
   // 차트
-  const months = FIN_PLAN.map(p => p.month.slice(5)+'월');
-  const actRevenues = FIN_PLAN.map(p => {
+  const months = getFINPlan().map(p => p.month.slice(5)+'월');
+  const actRevenues = getFINPlan().map(p => {
     const exp = expenses.find(e=>e.month===p.month);
     return exp?.actualRevenue || (p.month===curMonth ? actualRevenue : null);
   });
@@ -3709,8 +3869,8 @@ function renderFinance() {
     if (ctx._chart) ctx._chart.destroy();
     ctx._chart = new Chart(ctx, { type:'bar',
       data:{ labels:months, datasets:[
-        { type:'line', label:'계획 기장료', data:FIN_PLAN.map(p=>p.revenue/10000), borderColor:'#22c55e', borderWidth:2, pointRadius:4, fill:false, tension:.3 },
-        { type:'line', label:'계획 수임비', data:FIN_PLAN.map(p=>p.acquisitionCost/10000), borderColor:'#ef4444', borderWidth:2, pointRadius:4, fill:false, tension:.3, borderDash:[5,3] },
+        { type:'line', label:'계획 기장료', data:getFINPlan().map(p=>p.revenue/10000), borderColor:'#22c55e', borderWidth:2, pointRadius:4, fill:false, tension:.3 },
+        { type:'line', label:'계획 수임비', data:getFINPlan().map(p=>p.acquisitionCost/10000), borderColor:'#ef4444', borderWidth:2, pointRadius:4, fill:false, tension:.3, borderDash:[5,3] },
         { label:'실제 기장료', data:actRevenues.map(v=>v?v/10000:null), backgroundColor:'rgba(34,197,94,.4)', borderRadius:4 },
       ]},
       options:{ responsive:true, plugins:{ legend:{ position:'top', labels:{font:{size:11}} } }, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>v+'만' } } } }
@@ -3721,7 +3881,7 @@ function renderFinance() {
   const targetEl = document.getElementById('fin-target-table');
   if (targetEl) targetEl.innerHTML = `<table style="width:100%;font-size:12px;border-collapse:collapse;">
     <thead><tr style="background:#f8fafc;"><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:left;">월</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">목표 업체</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">계획 수익</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">계획 수임비</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">계획 손익</th></tr></thead>
-    <tbody>${FIN_PLAN.map(p=>{const net=p.revenue-p.acquisitionCost;const isCur=p.month===curMonth;return `<tr style="border-bottom:1px solid #f1f5f9;${isCur?'background:#eff6ff;font-weight:700;':''}"><td style="padding:7px;">${p.month.slice(5)}월${isCur?' 📍':''}</td><td style="padding:7px;text-align:center;">${p.targetClients}곳</td><td style="padding:7px;text-align:center;color:#059669;">${(p.revenue/10000).toFixed(0)}만</td><td style="padding:7px;text-align:center;color:#ef4444;">${(p.acquisitionCost/10000).toFixed(0)}만</td><td style="padding:7px;text-align:center;${net>=0?'color:#059669;':'color:#ef4444;'}">${net>=0?'+':''}${(net/10000).toFixed(0)}만</td></tr>`}).join('')}</tbody>
+    <tbody>${getFINPlan().map(p=>{const net=p.revenue-p.acquisitionCost;const isCur=p.month===curMonth;return `<tr style="border-bottom:1px solid #f1f5f9;${isCur?'background:#eff6ff;font-weight:700;':''}"><td style="padding:7px;">${p.month.slice(5)}월${isCur?' 📍':''}</td><td style="padding:7px;text-align:center;">${p.targetClients}곳</td><td style="padding:7px;text-align:center;color:#059669;">${(p.revenue/10000).toFixed(0)}만</td><td style="padding:7px;text-align:center;color:#ef4444;">${(p.acquisitionCost/10000).toFixed(0)}만</td><td style="padding:7px;text-align:center;${net>=0?'color:#059669;':'color:#ef4444;'}">${net>=0?'+':''}${(net/10000).toFixed(0)}만</td></tr>`}).join('')}</tbody>
   </table>`;
 
   // 지출 입력 테이블
@@ -3746,7 +3906,7 @@ function openFinInputModal() {
   </div>`;
   document.getElementById('generic-modal-title').textContent = '💸 손익 데이터 입력';
   document.getElementById('generic-modal-body').innerHTML = html;
-  document.getElementById('generic-modal').style.display = 'flex';
+  document.getElementById('generic-modal').classList.add('open');
 }
 function saveFinExpense() {
   const month  = document.getElementById('fin-month').value;
@@ -3758,6 +3918,56 @@ function saveFinExpense() {
   if (existing) { existing.amount=amount; existing.actualRevenue=rev; existing.note=note; }
   else db.kpiLogs.push({ id:Date.now(), type:'expense', month, amount, actualRevenue:rev, note });
   save(); closeModal('generic-modal'); renderFinance();
+}
+
+function openFinPlanEditModal() {
+  const plan = getFINPlan();
+  const html = `
+    <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">월별 목표 수치를 직접 수정할 수 있습니다. 수정 후 저장하면 차트와 통계에 즉시 반영됩니다.</p>
+    <div style="overflow-x:auto;">
+    <table style="width:100%;font-size:12px;border-collapse:collapse;">
+      <thead><tr style="background:#f8fafc;">
+        <th style="padding:8px;border-bottom:2px solid #e2e8f0;text-align:center;">월</th>
+        <th style="padding:8px;border-bottom:2px solid #e2e8f0;text-align:center;">목표 업체수</th>
+        <th style="padding:8px;border-bottom:2px solid #e2e8f0;text-align:center;">계획 기장료 수익 (원)</th>
+        <th style="padding:8px;border-bottom:2px solid #e2e8f0;text-align:center;">계획 수임비 지출 (원)</th>
+      </tr></thead>
+      <tbody>
+        ${plan.map((p,i) => `<tr style="border-bottom:1px solid #f1f5f9;">
+          <td style="padding:6px 8px;text-align:center;font-weight:600;">${p.month}</td>
+          <td style="padding:4px 6px;"><input type="number" id="fp-tc-${i}" value="${p.targetClients}" style="width:100%;padding:5px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;text-align:right;"></td>
+          <td style="padding:4px 6px;"><input type="number" id="fp-rev-${i}" value="${p.revenue}" style="width:100%;padding:5px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;text-align:right;"></td>
+          <td style="padding:4px 6px;"><input type="number" id="fp-cost-${i}" value="${p.acquisitionCost}" style="width:100%;padding:5px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;text-align:right;"></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;">
+      <button class="btn btn-d" onclick="resetFinPlan()">기본값으로 초기화</button>
+      <button class="btn btn-p" onclick="saveFinPlanFromModal(${plan.length})">저장</button>
+    </div>`;
+  document.getElementById('generic-modal-title').textContent = '✏️ 월별 손익 계획 수치 수정';
+  document.getElementById('generic-modal-body').innerHTML = html;
+  document.getElementById('generic-modal').classList.add('open');
+}
+function saveFinPlanFromModal(len) {
+  const plan = getFINPlan();
+  for (let i = 0; i < len; i++) {
+    plan[i].targetClients  = Number(document.getElementById(`fp-tc-${i}`)?.value  || plan[i].targetClients);
+    plan[i].revenue        = Number(document.getElementById(`fp-rev-${i}`)?.value || plan[i].revenue);
+    plan[i].acquisitionCost= Number(document.getElementById(`fp-cost-${i}`)?.value|| plan[i].acquisitionCost);
+  }
+  saveFINPlan(plan);
+  closeModal('generic-modal');
+  renderFinance();
+  alert('계획 수치가 저장되었습니다.');
+}
+function resetFinPlan() {
+  if (!confirm('기본값(기획서 원본 수치)으로 초기화하시겠습니까?')) return;
+  localStorage.removeItem('sw3_fin_plan');
+  closeModal('generic-modal');
+  renderFinance();
+  alert('기본값으로 초기화되었습니다.');
 }
 
 // ════════════════════════════════════════════════════
