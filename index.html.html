@@ -190,10 +190,18 @@ tr:hover td{background:#f8fafc;}
       <div class="nav-item" onclick="goTo('approval')"><span class="icon">✍️</span><span>결재 시스템 <span class="notif-dot" id="appr-dot" style="display:none"></span></span></div>
     </div>
     <div class="nav-group">
+      <div class="nav-label">수임 관리</div>
+      <div class="nav-item rep-only" onclick="goToWithAuth('pipeline')"><span class="icon">🚀</span><span>수임 파이프라인</span></div>
+    </div>
+    <div class="nav-group">
       <div class="nav-label">업체 관리</div>
       <div class="nav-item" onclick="goTo('allclients')"><span class="icon">📋</span><span>전체 기장 현황</span></div>
       <div class="nav-item" onclick="goTo('clients')"><span class="icon">🏢</span><span>담당 업체 현황</span></div>
       <div class="nav-item" onclick="goTo('worklog')"><span class="icon">📝</span><span>일별 업무 로그</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">업무 보고</div>
+      <div class="nav-item" onclick="goTo('dailyreport')"><span class="icon">📢</span><span>일일 업무 보고</span></div>
     </div>
     <div class="nav-group">
       <div class="nav-label">신고 관리</div>
@@ -202,8 +210,14 @@ tr:hover td{background:#f8fafc;}
       <div class="nav-item" onclick="goTo('deadlines')"><span class="icon">⚠️</span><span>미처리 업무 <span class="notif-dot" id="undone-dot" style="display:none"></span></span></div>
     </div>
     <div class="nav-group">
-      <div class="nav-label">성과</div>
+      <div class="nav-label">성과 / 관리</div>
       <div class="nav-item rep-only" id="nav-performance" onclick="goToWithAuth('performance')"><span class="icon">📊</span><span>직원별 성과</span></div>
+      <div class="nav-item rep-only" onclick="goToWithAuth('kpi')"><span class="icon">🎯</span><span>KPI 모니터링</span></div>
+      <div class="nav-item rep-only" onclick="goToWithAuth('finance')"><span class="icon">💰</span><span>손익 현황</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">AI 도구</div>
+      <div class="nav-item" onclick="goTo('aireview')"><span class="icon">🤖</span><span>AI 검토 프롬프트</span></div>
     </div>
     <div class="nav-group">
       <div class="nav-label">기타</div>
@@ -461,6 +475,144 @@ tr:hover td{background:#f8fafc;}
   </div>
 </div>
 
+<!-- ══ 수임 파이프라인 ══ -->
+<div id="section-pipeline" class="section">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div style="font-size:13px;color:#6b7280;">광고 리드부터 기장 시작까지 진행 현황을 단계별로 관리합니다.</div>
+    <button class="btn btn-p" onclick="openLeadModal()">+ 신규 리드 등록</button>
+  </div>
+  <div id="pipeline-board" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;"></div>
+</div>
+
+<!-- ══ 일일 업무 보고 ══ -->
+<div id="section-dailyreport" class="section">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+    <div class="card">
+      <div class="card-title">📝 업무 보고 작성</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:8px;">
+          <select id="dr-type" style="padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;flex:1;">
+            <option value="start">🌅 시작 보고 (오전)</option>
+            <option value="end">🌆 종료 보고 (오후)</option>
+          </select>
+          <input type="date" id="dr-date" style="padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;flex:1;">
+        </div>
+        <div id="dr-start-fields">
+          <textarea id="dr-today-plan" placeholder="오늘 처리 예정 업체 및 업무 목록" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:70px;resize:none;box-sizing:border-box;"></textarea>
+          <textarea id="dr-pending" placeholder="전날 미완 항목 (없으면 '없음')" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
+          <textarea id="dr-help" placeholder="도움이 필요한 사항 (없으면 '없음')" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
+        </div>
+        <div id="dr-end-fields" style="display:none;">
+          <textarea id="dr-done" placeholder="오늘 처리 완료된 업체 및 업무" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:70px;resize:none;box-sizing:border-box;"></textarea>
+          <textarea id="dr-undone" placeholder="처리 못한 항목 + 사유" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
+          <textarea id="dr-tomorrow" placeholder="내일 처리 예정" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
+        </div>
+        <button class="btn btn-p" onclick="submitDailyReport()" style="align-self:flex-end;">보고 제출</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 오늘 보고 현황 <span id="dr-today-summary" style="font-size:11px;color:#6b7280;font-weight:400;"></span></div>
+      <div id="dr-today-status"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">📋 보고 이력</div>
+      <div style="display:flex;gap:8px;">
+        <select id="dr-filter-staff" style="padding:5px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;" onchange="renderDailyReport()">
+          <option value="">전체 직원</option>
+        </select>
+        <input type="date" id="dr-filter-date" style="padding:5px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;" onchange="renderDailyReport()">
+      </div>
+    </div>
+    <div id="dr-history"></div>
+  </div>
+</div>
+
+<!-- ══ KPI 모니터링 ══ -->
+<div id="section-kpi" class="section">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <label style="font-size:13px;font-weight:600;color:var(--navy);">기준 월:</label>
+      <input type="month" id="kpi-month" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;" onchange="renderKPI()">
+    </div>
+    <button class="btn btn-p" onclick="openKPIInputModal()">+ KPI 실적 입력</button>
+  </div>
+  <div class="stat-grid" id="kpi-stat-grid"></div>
+  <div class="two-col" style="margin-top:18px;">
+    <div class="card"><div class="card-title">📊 직원별 KPI 달성률</div><canvas id="kpiChart" height="240"></canvas></div>
+    <div class="card"><div class="card-title">📋 KPI 기준표</div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr style="background:#f8fafc;"><th style="padding:7px 10px;text-align:left;border-bottom:1px solid #e2e8f0;">KPI 항목</th><th style="padding:7px 10px;text-align:center;border-bottom:1px solid #e2e8f0;">목표</th><th style="padding:7px 10px;text-align:center;border-bottom:1px solid #e2e8f0;">이번 달</th></tr></thead>
+        <tbody id="kpi-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px;">
+    <div class="card-title">📈 월별 KPI 추이</div>
+    <div id="kpi-detail-table"></div>
+  </div>
+</div>
+
+<!-- ══ 손익 현황 ══ -->
+<div id="section-finance" class="section">
+  <div class="stat-grid" id="fin-stat-grid" style="margin-bottom:18px;"></div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">📈 월별 손익 추이 (기획 대비 실적)</div>
+      <canvas id="finChart" height="260"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 수임 목표 vs 현황</div>
+      <div id="fin-target-table"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">💸 월별 수임비 지출 입력</div>
+      <button class="btn btn-o" onclick="openFinInputModal()">+ 지출 입력</button>
+    </div>
+    <div id="fin-expense-table"></div>
+  </div>
+</div>
+
+<!-- ══ AI 검토 프롬프트 ══ -->
+<div id="section-aireview" class="section">
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">🤖 AI 기장 검토 프롬프트 생성기</div>
+      <p style="font-size:12px;color:#6b7280;margin-bottom:14px;">업체를 선택하면 Claude에게 바로 보낼 수 있는 검토 프롬프트가 자동 생성됩니다. 복사해서 Claude 대화창에 붙여넣고 전표 엑셀을 첨부하세요.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--navy);display:block;margin-bottom:4px;">업체 선택</label>
+          <select id="ai-client-sel" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;" onchange="generateAIPrompt()">
+            <option value="">-- 업체를 선택하세요 --</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--navy);display:block;margin-bottom:4px;">검토 기준 월</label>
+          <input type="month" id="ai-month" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;" onchange="generateAIPrompt()">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--navy);display:block;margin-bottom:4px;">추가 검토 요청사항 (선택)</label>
+          <textarea id="ai-extra" placeholder="예: 이번 달 접대비가 특히 많으니 중점 검토 바람" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:60px;resize:none;box-sizing:border-box;" oninput="generateAIPrompt()"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="card-title" style="margin:0;">📋 생성된 프롬프트</div>
+        <button class="btn btn-p" onclick="copyAIPrompt()" id="ai-copy-btn" disabled>📋 복사</button>
+      </div>
+      <textarea id="ai-prompt-output" readonly style="flex:1;min-height:340px;width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:6px;font-size:11.5px;line-height:1.7;background:#f8fafc;color:#374151;resize:none;box-sizing:border-box;font-family:inherit;">업체를 선택하면 프롬프트가 자동 생성됩니다.</textarea>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px;">
+    <div class="card-title">📚 검토 항목 가이드</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;" id="ai-guide-grid"></div>
+  </div>
+</div>
+
 <!-- ══ 9. 성과 ══ -->
 <div id="section-performance" class="section">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
@@ -626,6 +778,7 @@ tr:hover td{background:#f8fafc;}
       <div class="tab active" onclick="switchClientModalTab('basic',this)">📋 기본 정보</div>
       <div class="tab" onclick="switchClientModalTab('contact',this)">👤 담당자 정보</div>
       <div class="tab" onclick="switchClientModalTab('account',this)">🔐 홈택스·계정</div>
+      <div class="tab" onclick="switchClientModalTab('doccheck',this)">📄 서류 징구</div>
     </div>
 
     <!-- 탭1: 기본 정보 -->
@@ -697,6 +850,13 @@ tr:hover td{background:#f8fafc;}
           <tr><td style="padding:4px 6px;font-weight:600;">요기요</td><td><input style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-yogiyo-id"></td><td><input style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-yogiyo-pw"></td></tr>
         </tbody>
       </table>
+    </div>
+    <div id="cm-tab-doccheck" style="display:none;">
+      <div style="font-size:11.5px;color:#6b7280;margin-bottom:12px;">계약 당일 징구해야 하는 서류입니다. 수령 완료된 항목을 체크하세요.</div>
+      <div id="cm-docstatus-list" style="display:flex;flex-direction:column;gap:7px;"></div>
+      <div style="margin-top:12px;font-size:12px;color:#6b7280;background:#f8fafc;padding:10px;border-radius:6px;">
+        💡 <strong>서류 징구가 완료되어야</strong> 더존 스크래핑 및 홈택스 자동 수집이 정상 작동합니다.
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-o" onclick="closeModal('add-client-modal')">취소</button>
@@ -787,16 +947,29 @@ tr:hover td{background:#f8fafc;}
   </div>
 </div>
 
+<!-- ══ 공용 모달 (파이프라인·KPI·손익 입력용) ══ -->
+<div class="modal-bg" id="generic-modal" style="display:none;">
+  <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto;">
+    <div class="modal-title" id="generic-modal-title">입력</div>
+    <div id="generic-modal-body" style="padding:4px 0;"></div>
+    <div class="modal-footer" style="margin-top:12px;">
+      <button class="btn btn-o" onclick="closeModal('generic-modal')">닫기</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── 데이터 스토어 ──
-const KEYS = { clients:'sw3_clients', logs:'sw3_logs', staff:'sw3_staff', approvals:'sw3_approvals', checks:'sw3_checks' };
+const KEYS = { clients:'sw3_clients', logs:'sw3_logs', staff:'sw3_staff', approvals:'sw3_approvals', checks:'sw3_checks', leads:'sw3_leads', dailyReports:'sw3_daily', kpiLogs:'sw3_kpi' };
 let db = {
-  clients:   JSON.parse(localStorage.getItem(KEYS.clients)   || '[]'),
-  logs:      JSON.parse(localStorage.getItem(KEYS.logs)      || '[]'),
-  staff:     JSON.parse(localStorage.getItem(KEYS.staff)     || '[]'),
-  approvals: JSON.parse(localStorage.getItem(KEYS.approvals) || '[]'),
-  checks:    JSON.parse(localStorage.getItem(KEYS.checks)    || '[]'),
+  clients:      JSON.parse(localStorage.getItem(KEYS.clients)      || '[]'),
+  logs:         JSON.parse(localStorage.getItem(KEYS.logs)         || '[]'),
+  staff:        JSON.parse(localStorage.getItem(KEYS.staff)        || '[]'),
+  approvals:    JSON.parse(localStorage.getItem(KEYS.approvals)    || '[]'),
+  checks:       JSON.parse(localStorage.getItem(KEYS.checks)       || '[]'),
+  leads:        JSON.parse(localStorage.getItem(KEYS.leads)        || '[]'),
+  dailyReports: JSON.parse(localStorage.getItem(KEYS.dailyReports) || '[]'),
+  kpiLogs:      JSON.parse(localStorage.getItem(KEYS.kpiLogs)      || '[]'),
 };
 function save() {
   Object.keys(KEYS).forEach(k => localStorage.setItem(KEYS[k], JSON.stringify(db[k])));
@@ -2191,6 +2364,9 @@ const pageTitles = {
   allclients:'📋 전체 기장 현황',
   clients:'🏢 담당 업체 현황', worklog:'📝 일별 업무 로그',
   calendar:'📅 신고 기한 캘린더', checklist:'☑️ 신고 체크리스트', deadlines:'⚠️ 미처리 업무',
+  pipeline:'🚀 수임 파이프라인', dailyreport:'📢 일일 업무 보고',
+  kpi:'🎯 KPI 모니터링', finance:'💰 손익 현황',
+  aireview:'🤖 AI 검토 프롬프트',
   performance:'📊 직원별 성과', docs:'📁 문서 라이브러리', settings:'⚙️ 설정/연동',
 };
 function goTo(id) {
@@ -2206,6 +2382,8 @@ function goTo(id) {
     allclients: () => renderAllClients(),
     clients: renderClients, worklog: renderLogs,
     calendar: renderCalendar, checklist: renderChecklist, deadlines: renderUndone,
+    pipeline: renderPipeline, dailyreport: renderDailyReport,
+    kpi: renderKPI, finance: renderFinance, aireview: renderAIReview,
     performance: renderPerformance, docs: renderDocs, settings: renderSettings,
   }[id];
   if (fn) fn();
@@ -2523,10 +2701,13 @@ function renderAllClients() {
 
   if (tab === '기장') {
     wrap.innerHTML = `<table>
-      <thead><tr><th>NO</th><th>담당대표</th><th>담당직원</th><th>업체명</th><th>대표자</th><th>연락처</th><th>구분</th><th>부가세</th><th>사업자번호</th><th>기장료</th><th>현황</th><th>관리</th></tr></thead>
+      <thead><tr><th>NO</th><th>담당대표</th><th>담당직원</th><th>업체명</th><th>대표자</th><th>연락처</th><th>구분</th><th>부가세</th><th>사업자번호</th><th>기장료</th><th>서류</th><th>현황</th><th>관리</th></tr></thead>
       <tbody>${rows.map((c, i) => {
         const color = getRepColor(c.rep);
         const hasDA = (c.deliveryAccounts||[]).length > 0;
+        const docCnt = c.docStatus ? Object.values(c.docStatus).filter(Boolean).length : 0;
+        const docBg  = docCnt === DOC_ITEMS.length ? '#d1fae5' : docCnt > 0 ? '#fef3c7' : '#fee2e2';
+        const docClr = docCnt === DOC_ITEMS.length ? '#065f46' : docCnt > 0 ? '#92400e' : '#991b1b';
         return `<tr>
           <td style="text-align:center;">${i+1}</td>
           <td style="text-align:center;"><span style="background:${color};color:#fff;padding:2px 7px;border-radius:8px;font-size:11px;">${c.rep||'-'}</span></td>
@@ -2538,6 +2719,7 @@ function renderAllClients() {
           <td style="text-align:center;"><span class="badge b-pend" style="font-size:10px;">${c.vatType||'과세'}</span></td>
           <td style="text-align:center;font-size:11px;color:#6b7280;">${c.bizNo||'-'}</td>
           <td style="text-align:right;font-weight:600;">${Number(c.fee||0).toLocaleString()}원</td>
+          <td style="text-align:center;cursor:pointer;" onclick="editClient(${c.id});setTimeout(()=>switchClientModalTab('doccheck'),100)"><span id="docbadge-${c.id}" style="padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;background:${docBg};color:${docClr};">${docCnt}/${DOC_ITEMS.length}</span></td>
           <td style="text-align:center;">${statusBadge(c.status)}</td>
           <td style="text-align:center;white-space:nowrap;">
             <button class="btn btn-o btn-sm" onclick="editClient(${c.id})">수정</button>
@@ -2754,7 +2936,7 @@ function saveClient() {
 }
 
 function switchClientModalTab(tab, el) {
-  ['basic','contact','account'].forEach(t => {
+  ['basic','contact','account','doccheck'].forEach(t => {
     const el2 = document.getElementById('cm-tab-'+t);
     if (el2) el2.style.display = t === tab ? '' : 'none';
   });
@@ -2762,8 +2944,14 @@ function switchClientModalTab(tab, el) {
   if (el) el.classList.add('active');
   else {
     const tabs = document.querySelectorAll('#add-client-modal .tab');
-    const idx = ['basic','contact','account'].indexOf(tab);
+    const idx = ['basic','contact','account','doccheck'].indexOf(tab);
     if (tabs[idx]) tabs[idx].classList.add('active');
+  }
+  // 서류 징구 탭 열릴 때 체크리스트 로드
+  if (tab === 'doccheck') {
+    const clientId = Number(document.getElementById('edit-client-id')?.value || 0);
+    const listEl = document.getElementById('cm-docstatus-list');
+    if (listEl) listEl.innerHTML = clientId ? renderDocStatus(clientId) : DOC_ITEMS.map((doc,i)=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12.5px;color:#9ca3af;"><input type="checkbox" disabled style="width:15px;height:15px;"> ${doc} <span style="margin-left:auto;font-size:10px;">저장 후 체크 가능</span></label>`).join('');
   }
 }
 
@@ -3177,6 +3365,498 @@ function openDocFile(filename) {
 }
 
 // ── 11. 설정 ──
+// ════════════════════════════════════════════════════
+// ① 수임 파이프라인
+// ════════════════════════════════════════════════════
+const PIPELINE_STAGES = [
+  { id:'lead',     label:'📞 리드 접수',    color:'#e0f2fe', border:'#38bdf8' },
+  { id:'consult',  label:'💬 상담 진행',    color:'#fef3c7', border:'#f59e0b' },
+  { id:'contract', label:'✍️ 계약 완료',    color:'#dcfce7', border:'#22c55e' },
+  { id:'docs',     label:'📄 서류 징구',    color:'#ede9fe', border:'#7c3aed' },
+  { id:'dozon',    label:'💻 더존 등록',    color:'#ffedd5', border:'#f97316' },
+  { id:'started',  label:'🚀 기장 시작',    color:'#d1fae5', border:'#059669' },
+];
+const DOC_ITEMS = ['기장계약서','홈택스 수임동의서','스크래핑 동의서','사업자등록증','통장 사본','법인 인감 서류'];
+
+function renderPipeline() {
+  const board = document.getElementById('pipeline-board');
+  board.innerHTML = PIPELINE_STAGES.map(st => {
+    const cards = db.leads.filter(l => l.stage === st.id);
+    return `<div style="min-width:190px;max-width:200px;flex-shrink:0;">
+      <div style="background:${st.border};color:#fff;padding:8px 12px;border-radius:8px 8px 0 0;font-size:12.5px;font-weight:700;">${st.label} <span style="background:rgba(255,255,255,.3);border-radius:10px;padding:1px 7px;">${cards.length}</span></div>
+      <div style="background:#f8fafc;border:1.5px solid ${st.border};border-top:none;border-radius:0 0 8px 8px;min-height:200px;padding:8px;display:flex;flex-direction:column;gap:7px;" ondragover="event.preventDefault()" ondrop="dropLead(event,'${st.id}')">
+        ${cards.map(l => `
+          <div draggable="true" ondragstart="dragLead(event,${l.id})" style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:9px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+            <div style="font-size:12.5px;font-weight:700;color:var(--navy);">${l.name}</div>
+            <div style="font-size:10.5px;color:#6b7280;margin-top:2px;">${l.bizType||''} · ${l.phone||''}</div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">${l.date}</div>
+            <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">
+              ${PIPELINE_STAGES.filter(s=>s.id!==st.id).map(s=>`<button onclick="moveLead(${l.id},'${s.id}')" style="font-size:9.5px;padding:2px 6px;border:1px solid ${s.border};color:${s.border};background:#fff;border-radius:4px;cursor:pointer;" title="${s.label}">${s.label.split(' ')[0]}</button>`).join('')}
+              <button onclick="deleteLead(${l.id})" style="font-size:9.5px;padding:2px 6px;border:1px solid #ef4444;color:#ef4444;background:#fff;border-radius:4px;cursor:pointer;">🗑</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+let _dragLeadId = null;
+function dragLead(e, id) { _dragLeadId = id; }
+function dropLead(e, stageId) { if (_dragLeadId) { moveLead(_dragLeadId, stageId); _dragLeadId = null; } }
+function moveLead(id, stageId) {
+  const l = db.leads.find(x => x.id === id); if (!l) return;
+  l.stage = stageId;
+  if (stageId === 'started') {
+    if (confirm(`"${l.name}" 기장 시작 완료! 업체 관리에 자동 등록하시겠습니까?`)) {
+      if (!db.clients.find(c => c.name === l.name)) {
+        const newId = Math.max(0, ...db.clients.map(c=>c.id)) + 1;
+        db.clients.push({ id:newId, name:l.name, ceoName:l.ceoName||'', type:l.corpType||'개인', contractType:'기장', status:'정상', vatType:'과세', staff:'', rep:'', fee:l.fee||0, vatFee:0, corpFee:0, phone:l.phone||'', email:'', source:'광고', startDate:new Date().toISOString().slice(0,10), note:'', docStatus:{}, deliveryAccounts:[] });
+      }
+    }
+  }
+  save(); renderPipeline();
+}
+function deleteLead(id) {
+  if (!confirm('이 리드를 삭제하시겠습니까?')) return;
+  db.leads = db.leads.filter(l => l.id !== id); save(); renderPipeline();
+}
+function openLeadModal() {
+  const today = new Date().toISOString().slice(0,10);
+  const html = `<div style="display:flex;flex-direction:column;gap:10px;padding:4px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><label style="font-size:11.5px;font-weight:600;">업체명 *</label><input id="nl-name" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="(주)홍길동"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">대표자명</label><input id="nl-ceo" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="홍길동"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">연락처</label><input id="nl-phone" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="010-0000-0000"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">업종/업태</label><input id="nl-biz" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="도소매/음식점"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">법인/개인</label>
+        <select id="nl-corp" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;">
+          <option>개인</option><option>법인</option>
+        </select>
+      </div>
+      <div><label style="font-size:11.5px;font-weight:600;">예상 기장료</label><input id="nl-fee" type="number" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="150000"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">접수일</label><input id="nl-date" type="date" value="${today}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">현재 단계</label>
+        <select id="nl-stage" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;">
+          ${PIPELINE_STAGES.map(s=>`<option value="${s.id}">${s.label}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div><label style="font-size:11.5px;font-weight:600;">메모</label><textarea id="nl-note" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;box-sizing:border-box;"></textarea></div>
+    <div style="text-align:right;"><button class="btn btn-p" onclick="saveLead()">등록</button></div>
+  </div>`;
+  document.getElementById('generic-modal-title').textContent = '🚀 신규 리드 등록';
+  document.getElementById('generic-modal-body').innerHTML = html;
+  document.getElementById('generic-modal').style.display = 'flex';
+}
+function saveLead() {
+  const name = document.getElementById('nl-name').value.trim();
+  if (!name) { alert('업체명을 입력하세요.'); return; }
+  db.leads.push({ id: Date.now(), name, ceoName: document.getElementById('nl-ceo').value.trim(), phone: document.getElementById('nl-phone').value.trim(), bizType: document.getElementById('nl-biz').value.trim(), corpType: document.getElementById('nl-corp').value, fee: Number(document.getElementById('nl-fee').value||0), date: document.getElementById('nl-date').value, stage: document.getElementById('nl-stage').value, note: document.getElementById('nl-note').value.trim() });
+  save(); closeModal('generic-modal'); renderPipeline();
+}
+
+// ════════════════════════════════════════════════════
+// ② 서류 징구 체크리스트 (업체 모달에 연동)
+// ════════════════════════════════════════════════════
+function renderDocStatus(clientId) {
+  const c = db.clients.find(x => x.id === clientId); if (!c) return '';
+  if (!c.docStatus) c.docStatus = {};
+  return DOC_ITEMS.map((doc, i) => {
+    const key = 'doc_' + i;
+    const checked = !!c.docStatus[key];
+    return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:${checked?'#d1fae5':'#f8fafc'};border:1px solid ${checked?'#6ee7b7':'#e2e8f0'};cursor:pointer;font-size:12.5px;">
+      <input type="checkbox" ${checked?'checked':''} onchange="toggleDocStatus(${clientId},'${key}',this.checked)" style="width:15px;height:15px;">
+      <span style="${checked?'text-decoration:line-through;color:#6b7280;':'color:var(--navy);'}">${doc}</span>
+      ${checked ? '<span style="margin-left:auto;font-size:10px;color:#059669;font-weight:700;">✅ 수령</span>' : '<span style="margin-left:auto;font-size:10px;color:#ef4444;font-weight:700;">⏳ 미수령</span>'}
+    </label>`;
+  }).join('');
+}
+function toggleDocStatus(clientId, key, val) {
+  const c = db.clients.find(x => x.id === clientId); if (!c) return;
+  if (!c.docStatus) c.docStatus = {};
+  c.docStatus[key] = val;
+  save();
+  // 전체 기장 현황의 서류 아이콘 업데이트
+  const badge = document.getElementById('docbadge-' + clientId);
+  if (badge) {
+    const cnt = Object.values(c.docStatus).filter(Boolean).length;
+    badge.textContent = cnt + '/' + DOC_ITEMS.length;
+    badge.style.background = cnt === DOC_ITEMS.length ? '#d1fae5' : cnt > 0 ? '#fef3c7' : '#fee2e2';
+    badge.style.color = cnt === DOC_ITEMS.length ? '#065f46' : cnt > 0 ? '#92400e' : '#991b1b';
+  }
+}
+
+// ════════════════════════════════════════════════════
+// ③ 일일 업무 보고
+// ════════════════════════════════════════════════════
+function renderDailyReport() {
+  const today = new Date().toISOString().slice(0,10);
+  const dateEl = document.getElementById('dr-date'); if (dateEl && !dateEl.value) dateEl.value = today;
+  // 직원 필터 셀렉트 갱신
+  const sel = document.getElementById('dr-filter-staff');
+  if (sel) { sel.innerHTML = '<option value="">전체 직원</option>' + getEmps().map(e=>`<option value="${e.name}">${e.name}</option>`).join(''); }
+  // dr-type 변경에 따라 필드 토글
+  const drType = document.getElementById('dr-type');
+  if (drType) {
+    drType.onchange = () => {
+      const isStart = drType.value === 'start';
+      document.getElementById('dr-start-fields').style.display = isStart ? '' : 'none';
+      document.getElementById('dr-end-fields').style.display   = isStart ? 'none' : '';
+    };
+  }
+  // 오늘 보고 현황
+  const todayReps = db.dailyReports.filter(r => r.date === today);
+  const allEmps = getEmps();
+  const statEl = document.getElementById('dr-today-status');
+  if (statEl) {
+    const summaryEl = document.getElementById('dr-today-summary');
+    if (summaryEl) summaryEl.textContent = `(${today} 기준 ${todayReps.length}건)`;
+    statEl.innerHTML = allEmps.length === 0 ? '<p style="color:#9ca3af;font-size:12px;">등록된 직원이 없습니다.</p>' :
+      allEmps.map(e => {
+        const start = todayReps.find(r => r.staff === e.name && r.type === 'start');
+        const end   = todayReps.find(r => r.staff === e.name && r.type === 'end');
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:12.5px;">
+          <strong>${e.name}</strong>
+          <div style="display:flex;gap:8px;">
+            <span style="padding:3px 10px;border-radius:8px;font-size:11px;background:${start?'#d1fae5':'#fee2e2'};color:${start?'#065f46':'#991b1b'};">${start?'✅ 시작':'❌ 시작미제출'}</span>
+            <span style="padding:3px 10px;border-radius:8px;font-size:11px;background:${end?'#dbeafe':'#f1f5f9'};color:${end?'#1e40af':'#6b7280'};">${end?'✅ 종료':'- 종료대기'}</span>
+          </div>
+        </div>`;
+      }).join('');
+  }
+  // 보고 이력
+  let reports = [...db.dailyReports].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  const filterStaff = document.getElementById('dr-filter-staff')?.value;
+  const filterDate  = document.getElementById('dr-filter-date')?.value;
+  if (filterStaff) reports = reports.filter(r => r.staff === filterStaff);
+  if (filterDate)  reports = reports.filter(r => r.date === filterDate);
+  const histEl = document.getElementById('dr-history');
+  if (histEl) histEl.innerHTML = reports.length === 0 ? '<p style="color:#9ca3af;font-size:12px;text-align:center;padding:20px;">보고 이력이 없습니다.</p>' :
+    reports.slice(0, 30).map(r => {
+      const isStart = r.type === 'start';
+      const borderColor = isStart ? '#f59e0b' : '#3b82f6';
+      const bg = isStart ? '#fffbeb' : '#eff6ff';
+      const rows = isStart
+        ? [['처리 예정',r.todayPlan],['전날 미완',r.pending],['도움 필요',r.help]]
+        : [['처리 완료',r.done],['처리 못한 항목',r.undone],['내일 예정',r.tomorrow]];
+      return `<div style="border-left:3px solid ${borderColor};background:${bg};border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div><strong style="font-size:13px;">${r.staff}</strong> <span style="font-size:11px;padding:2px 8px;border-radius:8px;background:${borderColor};color:#fff;">${isStart?'🌅 시작보고':'🌆 종료보고'}</span></div>
+          <div style="font-size:11px;color:#6b7280;">${r.date} ${r.time||''}</div>
+        </div>
+        ${rows.map(([lbl,val])=>`<div style="font-size:12px;margin-bottom:5px;"><span style="font-weight:600;color:#374151;">${lbl}:</span> <span style="color:#6b7280;white-space:pre-wrap;">${val||'-'}</span></div>`).join('')}
+      </div>`;
+    }).join('');
+}
+function submitDailyReport() {
+  if (!currentUser) { alert('로그인이 필요합니다.'); return; }
+  const type = document.getElementById('dr-type').value;
+  const date = document.getElementById('dr-date').value;
+  const now  = new Date().toTimeString().slice(0,5);
+  let report = { id: Date.now(), staff: currentUser.name, type, date, time: now, createdAt: new Date().toISOString() };
+  if (type === 'start') {
+    report.todayPlan = document.getElementById('dr-today-plan').value.trim();
+    report.pending   = document.getElementById('dr-pending').value.trim();
+    report.help      = document.getElementById('dr-help').value.trim();
+    if (!report.todayPlan) { alert('처리 예정 업무를 입력해주세요.'); return; }
+  } else {
+    report.done    = document.getElementById('dr-done').value.trim();
+    report.undone  = document.getElementById('dr-undone').value.trim();
+    report.tomorrow= document.getElementById('dr-tomorrow').value.trim();
+    if (!report.done) { alert('처리 완료 내용을 입력해주세요.'); return; }
+  }
+  db.dailyReports.push(report);
+  save();
+  alert(`${type==='start'?'시작':'종료'} 보고가 제출되었습니다.`);
+  ['dr-today-plan','dr-pending','dr-help','dr-done','dr-undone','dr-tomorrow'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  renderDailyReport();
+}
+
+// ════════════════════════════════════════════════════
+// ④ KPI 모니터링
+// ════════════════════════════════════════════════════
+const KPI_TARGETS = [
+  { key:'completeRate', label:'처리 완료율',       target:100, unit:'%',  desc:'담당 업체 기준 완료 비율' },
+  { key:'deadlineRate', label:'신고 기한 준수율',   target:100, unit:'%',  desc:'기한 내 신고 완료 비율' },
+  { key:'errorCount',   label:'오류/재작업 건수',   target:3,   unit:'건 이하', desc:'월 3건 이하 목표', inverse:true },
+  { key:'complaintCount',label:'고객 민원 건수',    target:1,   unit:'건 이하', desc:'월 1건 이하 목표', inverse:true },
+  { key:'aiAccuracy',   label:'AI 검토 수정 비율',  target:20,  unit:'%',  desc:'낮을수록 AI 정확도 향상', inverse:true },
+];
+function renderKPI() {
+  const monthEl = document.getElementById('kpi-month');
+  if (monthEl && !monthEl.value) monthEl.value = new Date().toISOString().slice(0,7);
+  const month = document.getElementById('kpi-month')?.value || new Date().toISOString().slice(0,7);
+  const monthData = db.kpiLogs.filter(k => k.month === month);
+
+  // 전체 평균 stat
+  const statEl = document.getElementById('kpi-stat-grid');
+  if (statEl) statEl.innerHTML = KPI_TARGETS.map(kpi => {
+    const vals = monthData.map(d => Number(d[kpi.key]||0)).filter(v => !isNaN(v));
+    const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '-';
+    const ok = avg !== '-' && (kpi.inverse ? Number(avg) <= kpi.target : Number(avg) >= kpi.target);
+    return `<div class="stat-card ${ok?'g':'r'}"><div class="lbl">${kpi.label}</div><div class="val">${avg}<span style="font-size:13px;">${avg!=='-'?kpi.unit:''}</span></div><div class="sub">목표: ${kpi.target}${kpi.unit}</div></div>`;
+  }).join('');
+
+  // KPI 기준표
+  const tableEl = document.getElementById('kpi-table-body');
+  if (tableEl) tableEl.innerHTML = KPI_TARGETS.map(kpi => {
+    const vals = monthData.map(d => Number(d[kpi.key]||0)).filter(v => !isNaN(v));
+    const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '-';
+    const ok = avg !== '-' && (kpi.inverse ? Number(avg) <= kpi.target : Number(avg) >= kpi.target);
+    return `<tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:8px 10px;font-size:12px;">${kpi.label}</td>
+      <td style="padding:8px 10px;text-align:center;font-size:12px;">${kpi.target}${kpi.unit}</td>
+      <td style="padding:8px 10px;text-align:center;"><span style="padding:3px 10px;border-radius:8px;font-size:11.5px;background:${ok?'#d1fae5':avg==='-'?'#f1f5f9':'#fee2e2'};color:${ok?'#065f46':avg==='-'?'#6b7280':'#991b1b'};">${avg !== '-' ? avg+kpi.unit : '미입력'}</span></td>
+    </tr>`;
+  }).join('');
+
+  // 직원별 차트
+  const emps = getEmps();
+  const rates = emps.map(e => {
+    const d = monthData.find(k => k.staff === e.name);
+    return d ? Number(d.completeRate||0) : 0;
+  });
+  const ctx = document.getElementById('kpiChart');
+  if (ctx) {
+    if (ctx._chart) ctx._chart.destroy();
+    ctx._chart = new Chart(ctx, { type:'bar', data:{ labels: emps.map(e=>e.name), datasets:[{ label:'처리 완료율(%)', data:rates, backgroundColor:rates.map(r=>r>=100?'rgba(34,197,94,.7)':'rgba(239,68,68,.6)'), borderRadius:5 }] }, options:{ responsive:true, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,max:105,ticks:{callback:v=>v+'%'}} } } });
+  }
+
+  // 월별 추이 테이블
+  const allMonths = [...new Set(db.kpiLogs.map(k=>k.month))].sort().slice(-6);
+  const detailEl = document.getElementById('kpi-detail-table');
+  if (detailEl) {
+    if (allMonths.length === 0) { detailEl.innerHTML = '<p style="color:#9ca3af;font-size:12px;text-align:center;padding:20px;">아직 입력된 KPI 데이터가 없습니다.<br>우측 상단 "+ KPI 실적 입력"으로 데이터를 추가하세요.</p>'; return; }
+    detailEl.innerHTML = `<table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="background:#f8fafc;"><th style="padding:7px 10px;text-align:left;border-bottom:1px solid #e2e8f0;">직원</th>${allMonths.map(m=>`<th style="padding:7px 10px;text-align:center;border-bottom:1px solid #e2e8f0;">${m}</th>`).join('')}</tr></thead><tbody>${
+      getEmps().map(e => `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 10px;font-weight:600;">${e.name}</td>${allMonths.map(m => { const d = db.kpiLogs.find(k=>k.month===m&&k.staff===e.name); const v = d?Number(d.completeRate||0):null; return `<td style="padding:8px 10px;text-align:center;"><span style="padding:2px 8px;border-radius:6px;background:${v===null?'#f1f5f9':v>=100?'#d1fae5':'#fef3c7'};color:${v===null?'#9ca3af':v>=100?'#065f46':'#92400e'};">${v===null?'-':v+'%'}</span></td>`; }).join('')}</tr>`).join('')
+    }</tbody></table>`;
+  }
+}
+function openKPIInputModal() {
+  const month = document.getElementById('kpi-month')?.value || new Date().toISOString().slice(0,7);
+  const emps = getEmps();
+  const html = `<div style="font-size:12px;color:#6b7280;margin-bottom:12px;">기준 월: <strong>${month}</strong> · 직원별 KPI 실적을 입력하세요.</div>
+  ${emps.map(e => {
+    const existing = db.kpiLogs.find(k=>k.month===month&&k.staff===e.name) || {};
+    return `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px;background:#f8fafc;">
+      <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:8px;">👤 ${e.name}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        ${KPI_TARGETS.map(kpi=>`<div><label style="font-size:11px;color:#6b7280;">${kpi.label} (${kpi.unit})</label><input type="number" id="kpi-${e.name}-${kpi.key}" value="${existing[kpi.key]||''}" placeholder="${kpi.target}" style="width:100%;padding:6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12.5px;box-sizing:border-box;margin-top:2px;"></div>`).join('')}
+      </div>
+    </div>`;
+  }).join('')}
+  <div style="text-align:right;"><button class="btn btn-p" onclick="saveKPIData('${month}')">저장</button></div>`;
+  document.getElementById('generic-modal-title').textContent = '🎯 KPI 실적 입력';
+  document.getElementById('generic-modal-body').innerHTML = html;
+  document.getElementById('generic-modal').style.display = 'flex';
+}
+function saveKPIData(month) {
+  getEmps().forEach(e => {
+    let existing = db.kpiLogs.find(k=>k.month===month&&k.staff===e.name);
+    if (!existing) { existing = { id:Date.now()+Math.random(), month, staff:e.name }; db.kpiLogs.push(existing); }
+    KPI_TARGETS.forEach(kpi => {
+      const val = document.getElementById(`kpi-${e.name}-${kpi.key}`)?.value;
+      if (val !== '') existing[kpi.key] = Number(val);
+    });
+  });
+  save(); closeModal('generic-modal'); renderKPI();
+  alert('KPI 데이터가 저장되었습니다.');
+}
+
+// ════════════════════════════════════════════════════
+// ⑤ 손익 현황
+// ════════════════════════════════════════════════════
+const FIN_PLAN = [
+  { month:'2026-04', targetClients:130, revenue:11440000, acquisitionCost:16000000 },
+  { month:'2026-05', targetClients:210, revenue:18480000, acquisitionCost:32000000 },
+  { month:'2026-06', targetClients:310, revenue:27280000, acquisitionCost:52000000 },
+  { month:'2026-07', targetClients:410, revenue:36080000, acquisitionCost:56000000 },
+  { month:'2026-08', targetClients:510, revenue:44880000, acquisitionCost:76000000 },
+  { month:'2026-09', targetClients:550, revenue:48400000, acquisitionCost:64000000 },
+  { month:'2026-10', targetClients:550, revenue:48400000, acquisitionCost:48000000 },
+  { month:'2026-11', targetClients:550, revenue:48400000, acquisitionCost:28000000 },
+];
+function renderFinance() {
+  // 현재 실제 기장 업체 수 & 기장료
+  const activeClients = db.clients.filter(c => c.contractType === '기장' && c.status === '정상');
+  const actualRevenue  = activeClients.reduce((s,c) => s+(Number(c.fee)||0), 0);
+  const curMonth = new Date().toISOString().slice(0,7);
+  const plan = FIN_PLAN.find(p => p.month === curMonth) || FIN_PLAN[0];
+  const revProgress = plan ? Math.round(actualRevenue / plan.revenue * 100) : 0;
+  const clientProgress = plan ? Math.round(activeClients.length / plan.targetClients * 100) : 0;
+
+  // 지출 데이터 (수동 입력)
+  const expenses = db.kpiLogs.filter(k => k.type === 'expense');
+  const actualExpense = expenses.find(e => e.month === curMonth)?.amount || 0;
+  const netProfit = actualRevenue - actualExpense;
+
+  const statEl = document.getElementById('fin-stat-grid');
+  if (statEl) statEl.innerHTML = `
+    <div class="stat-card"><div class="lbl">현재 기장 업체</div><div class="val">${activeClients.length}<span style="font-size:13px;">곳</span></div><div class="sub">목표: ${plan?.targetClients||'-'}곳 (${clientProgress}%)</div></div>
+    <div class="stat-card g"><div class="lbl">이번 달 기장료 수익</div><div class="val" style="font-size:18px;">${(actualRevenue/10000).toFixed(0)}<span style="font-size:13px;">만원</span></div><div class="sub">목표: ${plan?(plan.revenue/10000).toFixed(0):'--'}만원 (${revProgress}%)</div></div>
+    <div class="stat-card ${actualExpense>0?'r':''}"><div class="lbl">이번 달 수임비 지출</div><div class="val" style="font-size:18px;">${(actualExpense/10000).toFixed(0)}<span style="font-size:13px;">만원</span></div><div class="sub">계획: ${plan?(plan.acquisitionCost/10000).toFixed(0):'--'}만원</div></div>
+    <div class="stat-card ${netProfit>=0?'g':'r'}"><div class="lbl">순손익</div><div class="val" style="font-size:18px;">${netProfit>=0?'+':''}${(netProfit/10000).toFixed(0)}<span style="font-size:13px;">만원</span></div><div class="sub">${netProfit>=0?'흑자':'⚠️ 적자 구간'}</div></div>
+    <div class="stat-card y"><div class="lbl">흑자 전환 예상</div><div class="val" style="font-size:14px;">2026-10</div><div class="sub">기획 기준</div></div>
+  `;
+
+  // 차트
+  const months = FIN_PLAN.map(p => p.month.slice(5)+'월');
+  const actRevenues = FIN_PLAN.map(p => {
+    const exp = expenses.find(e=>e.month===p.month);
+    return exp?.actualRevenue || (p.month===curMonth ? actualRevenue : null);
+  });
+  const ctx = document.getElementById('finChart');
+  if (ctx) {
+    if (ctx._chart) ctx._chart.destroy();
+    ctx._chart = new Chart(ctx, { type:'bar',
+      data:{ labels:months, datasets:[
+        { type:'line', label:'계획 기장료', data:FIN_PLAN.map(p=>p.revenue/10000), borderColor:'#22c55e', borderWidth:2, pointRadius:4, fill:false, tension:.3 },
+        { type:'line', label:'계획 수임비', data:FIN_PLAN.map(p=>p.acquisitionCost/10000), borderColor:'#ef4444', borderWidth:2, pointRadius:4, fill:false, tension:.3, borderDash:[5,3] },
+        { label:'실제 기장료', data:actRevenues.map(v=>v?v/10000:null), backgroundColor:'rgba(34,197,94,.4)', borderRadius:4 },
+      ]},
+      options:{ responsive:true, plugins:{ legend:{ position:'top', labels:{font:{size:11}} } }, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>v+'만' } } } }
+    });
+  }
+
+  // 목표 대비 현황 테이블
+  const targetEl = document.getElementById('fin-target-table');
+  if (targetEl) targetEl.innerHTML = `<table style="width:100%;font-size:12px;border-collapse:collapse;">
+    <thead><tr style="background:#f8fafc;"><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:left;">월</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">목표 업체</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">계획 수익</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">계획 수임비</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">계획 손익</th></tr></thead>
+    <tbody>${FIN_PLAN.map(p=>{const net=p.revenue-p.acquisitionCost;const isCur=p.month===curMonth;return `<tr style="border-bottom:1px solid #f1f5f9;${isCur?'background:#eff6ff;font-weight:700;':''}"><td style="padding:7px;">${p.month.slice(5)}월${isCur?' 📍':''}</td><td style="padding:7px;text-align:center;">${p.targetClients}곳</td><td style="padding:7px;text-align:center;color:#059669;">${(p.revenue/10000).toFixed(0)}만</td><td style="padding:7px;text-align:center;color:#ef4444;">${(p.acquisitionCost/10000).toFixed(0)}만</td><td style="padding:7px;text-align:center;${net>=0?'color:#059669;':'color:#ef4444;'}">${net>=0?'+':''}${(net/10000).toFixed(0)}만</td></tr>`}).join('')}</tbody>
+  </table>`;
+
+  // 지출 입력 테이블
+  const expEl = document.getElementById('fin-expense-table');
+  if (expEl) {
+    const expData = db.kpiLogs.filter(k=>k.type==='expense').sort((a,b)=>b.month.localeCompare(a.month));
+    expEl.innerHTML = expData.length === 0 ? '<p style="color:#9ca3af;font-size:12px;text-align:center;padding:20px;">아직 입력된 지출 데이터가 없습니다.</p>' :
+      `<table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="background:#f8fafc;"><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:left;">월</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:right;">수임비 지출</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:right;">기장료 실적</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:right;">실제 손익</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;">메모</th></tr></thead><tbody>${
+        expData.map(e=>{const net=(e.actualRevenue||0)-e.amount;return `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:7px;">${e.month}</td><td style="padding:7px;text-align:right;color:#ef4444;">${(e.amount/10000).toFixed(0)}만</td><td style="padding:7px;text-align:right;color:#059669;">${e.actualRevenue?(e.actualRevenue/10000).toFixed(0)+'만':'-'}</td><td style="padding:7px;text-align:right;${net>=0?'color:#059669;':'color:#ef4444;'}">${e.actualRevenue?(net>=0?'+':'')+(net/10000).toFixed(0)+'만':'-'}</td><td style="padding:7px;color:#6b7280;">${e.note||''}</td></tr>`;}).join('')
+      }</tbody></table>`;
+  }
+}
+function openFinInputModal() {
+  const curMonth = new Date().toISOString().slice(0,7);
+  const existing = db.kpiLogs.find(k=>k.type==='expense'&&k.month===curMonth)||{};
+  const html = `<div style="display:flex;flex-direction:column;gap:10px;">
+    <div><label style="font-size:12px;font-weight:600;">기준 월</label><input type="month" id="fin-month" value="${existing.month||curMonth}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:3px;"></div>
+    <div><label style="font-size:12px;font-weight:600;">수임비 지출액 (원)</label><input type="number" id="fin-amount" value="${existing.amount||''}" placeholder="예: 16000000" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:3px;"></div>
+    <div><label style="font-size:12px;font-weight:600;">기장료 실제 수입 (원)</label><input type="number" id="fin-rev" value="${existing.actualRevenue||''}" placeholder="예: 11440000" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:3px;"></div>
+    <div><label style="font-size:12px;font-weight:600;">메모</label><input id="fin-note" value="${existing.note||''}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:3px;" placeholder="특이사항 입력"></div>
+    <div style="text-align:right;"><button class="btn btn-p" onclick="saveFinExpense()">저장</button></div>
+  </div>`;
+  document.getElementById('generic-modal-title').textContent = '💸 손익 데이터 입력';
+  document.getElementById('generic-modal-body').innerHTML = html;
+  document.getElementById('generic-modal').style.display = 'flex';
+}
+function saveFinExpense() {
+  const month  = document.getElementById('fin-month').value;
+  const amount = Number(document.getElementById('fin-amount').value||0);
+  const rev    = Number(document.getElementById('fin-rev').value||0);
+  const note   = document.getElementById('fin-note').value.trim();
+  if (!month || !amount) { alert('월과 지출액을 입력하세요.'); return; }
+  let existing = db.kpiLogs.find(k=>k.type==='expense'&&k.month===month);
+  if (existing) { existing.amount=amount; existing.actualRevenue=rev; existing.note=note; }
+  else db.kpiLogs.push({ id:Date.now(), type:'expense', month, amount, actualRevenue:rev, note });
+  save(); closeModal('generic-modal'); renderFinance();
+}
+
+// ════════════════════════════════════════════════════
+// ⑥ AI 검토 프롬프트 생성기
+// ════════════════════════════════════════════════════
+const AI_GUIDE_ITEMS = [
+  { icon:'⚠️', title:'계정과목 오류', desc:'더존이 잘못 분류한 항목 식별 (복리후생 vs 접대비 혼동 등)' },
+  { icon:'📈', title:'비용 이상 패턴', desc:'전월 대비 급변 항목 감지 (임차료 200만→500만 등)' },
+  { icon:'🎰', title:'접대비 한도', desc:'골프장·유흥업소 거래 감지, 한도 초과 위험 경보' },
+  { icon:'💸', title:'가지급금 위험', desc:'대표이사 현금 출금, 개인성 지출 혼입 가능성 탐지' },
+  { icon:'📑', title:'세금계산서 누락', desc:'매입 세금계산서 수취 급감 → 자료 누락 가능성 알림' },
+  { icon:'🏷️', title:'업체 특이사항 적용', desc:'업체 카드 등록 특이사항 기준 맞춤 검토' },
+];
+function renderAIReview() {
+  // 업체 셀렉트 채우기
+  const sel = document.getElementById('ai-client-sel');
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">-- 업체를 선택하세요 --</option>' +
+      db.clients.filter(c=>c.status==='정상').sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${c.name}${c.type==='법인'?' (법인)':' (개인)'}</option>`).join('');
+    if (cur) sel.value = cur;
+  }
+  // 기준 월 기본값
+  const monthEl = document.getElementById('ai-month');
+  if (monthEl && !monthEl.value) monthEl.value = new Date().toISOString().slice(0,7);
+  // 가이드 그리드
+  const guideEl = document.getElementById('ai-guide-grid');
+  if (guideEl) guideEl.innerHTML = AI_GUIDE_ITEMS.map(g=>`
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:12px;">
+      <div style="font-size:20px;margin-bottom:6px;">${g.icon}</div>
+      <div style="font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:4px;">${g.title}</div>
+      <div style="font-size:11.5px;color:#6b7280;">${g.desc}</div>
+    </div>`).join('');
+  generateAIPrompt();
+}
+function generateAIPrompt() {
+  const selEl  = document.getElementById('ai-client-sel');
+  const monthEl = document.getElementById('ai-month');
+  const extraEl = document.getElementById('ai-extra');
+  const outEl   = document.getElementById('ai-prompt-output');
+  const copyBtn = document.getElementById('ai-copy-btn');
+  if (!selEl || !monthEl || !outEl) return;
+  const clientId = Number(selEl.value);
+  const month    = monthEl.value;
+  if (!clientId || !month) {
+    outEl.value = '업체와 기준 월을 선택하면 프롬프트가 자동 생성됩니다.';
+    if (copyBtn) copyBtn.disabled = true;
+    return;
+  }
+  const c = db.clients.find(x => x.id === clientId);
+  if (!c) return;
+  const extra = extraEl?.value.trim();
+  const docCnt = c.docStatus ? Object.values(c.docStatus).filter(Boolean).length : 0;
+  const yr = month.slice(0,4), mo = month.slice(5,7);
+
+  let prompt = `아래는 세무법인 서월 기장 업체의 기본 정보입니다. 이 정보를 기반으로 첨부한 ${yr}년 ${mo}월 전표 엑셀 파일을 검토해주세요.
+
+═══ 업체 기본 정보 ═══
+• 업체명: ${c.name}
+• 업종/구분: ${c.type} · ${c.vatType||'과세'}
+• 대표자: ${c.ceoName||'정보 없음'}
+• 담당 직원: ${c.staff||'미배정'}
+• 검토 기준월: ${yr}년 ${mo}월
+
+═══ 특이사항 (중점 검토 필요) ═══
+• 가지급금 이력: ${c.note?.includes('가지급금')?'있음 ⚠️':'특이사항 없음'}
+${c.note ? '• 업체 메모: ' + c.note : ''}
+${extra ? '• 추가 요청: ' + extra : ''}
+
+═══ 검토 요청 항목 ═══
+1. 계정과목 오류: 더존 AI가 잘못 분류했을 가능성이 있는 항목을 찾아 올바른 계정과목을 제안해주세요.
+2. 비용 이상 패턴: 전월 대비 급격히 증가하거나 감소한 비용 항목을 지적해주세요.
+3. 접대비 한도: 골프장·유흥업소 관련 거래가 있는지 확인하고, 접대비 한도 초과 위험을 알려주세요.
+4. 가지급금 위험 거래: 대표이사 관련 현금 출금 또는 개인성 지출이 혼입된 가능성이 있는 항목을 표시해주세요.
+5. 세금계산서 누락 의심: 매입 규모 대비 세금계산서 수취가 적은 경우 누락 가능성을 알려주세요.
+6. 기타: 세무사가 반드시 확인해야 할 리스크 항목을 정리해주세요.
+
+═══ 출력 형식 ═══
+- 이상 항목 발견 시: [항목명] | [계정과목] | [금액] | [이상 사유] | [권고 처리 방법] 형태로 표로 정리
+- 이상 없는 항목은 생략
+- 최종 요약: 총 N건의 이상 항목 발견, 심각도 높은 순서로 정렬
+- 직원이 최종 확인해야 할 우선순위 체크리스트로 마무리해주세요.`;
+
+  outEl.value = prompt;
+  if (copyBtn) copyBtn.disabled = false;
+}
+function copyAIPrompt() {
+  const outEl = document.getElementById('ai-prompt-output');
+  if (!outEl || !outEl.value) return;
+  navigator.clipboard.writeText(outEl.value).then(() => {
+    const btn = document.getElementById('ai-copy-btn');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✅ 복사 완료!'; setTimeout(()=>btn.textContent=orig, 2000); }
+  }).catch(() => {
+    outEl.select(); document.execCommand('copy');
+    alert('프롬프트가 복사되었습니다.');
+  });
+}
+
+// ════════════════════════════════════════════════════
 function renderSettings() {
   const repColors2 = ['#1F3864','#375623','#7c3aed','#b45309'];
   const isRep = currentUser?.role === 'representative';
@@ -3439,7 +4119,7 @@ function initFirebase() {
         fbSave();
         return;
       }
-      const keys = ['clients','logs','staff','approvals','checks'];
+      const keys = ['clients','logs','staff','approvals','checks','leads','dailyReports','kpiLogs'];
       keys.forEach(k => { if (data[k] !== undefined) db[k] = data[k]; });
       // localStorage 캐시도 갱신
       Object.keys(KEYS).forEach(k => localStorage.setItem(KEYS[k], JSON.stringify(db[k])));
@@ -3464,12 +4144,15 @@ function fbSave() {
   if (!fbDb) return;
   _fbSyncing = true;
   fbDb.ref('seowol').set({
-    clients:   db.clients   || [],
-    logs:      db.logs      || [],
-    staff:     db.staff     || [],
-    approvals: db.approvals || [],
-    checks:    db.checks    || [],
-    data_ver:  DATA_VER,
+    clients:      db.clients      || [],
+    logs:         db.logs         || [],
+    staff:        db.staff        || [],
+    approvals:    db.approvals    || [],
+    checks:       db.checks       || [],
+    leads:        db.leads        || [],
+    dailyReports: db.dailyReports || [],
+    kpiLogs:      db.kpiLogs      || [],
+    data_ver:     DATA_VER,
   }).then(() => {
     setTimeout(() => { _fbSyncing = false; }, 500);
   }).catch(err => {
@@ -3529,17 +4212,22 @@ function refreshCurrentSection() {
   if (!active || !currentUser) return;
   const id = active.id.replace('section-', '');
   const map = {
-    dashboard:  renderDashboard,
-    org:        renderOrg,
-    approval:   () => renderApproval(currentApprTab),
-    allclients: renderAllClients,
-    clients:    renderClients,
-    worklog:    renderWorkLog,
-    checklist:  renderChecklist,
-    deadlines:  renderUndone,
-    performance:() => { if (currentUser?.role === 'representative') renderPerformance(); },
-    docs:       renderDocs,
-    settings:   renderSettings,
+    dashboard:   renderDashboard,
+    org:         renderOrg,
+    approval:    () => renderApproval(currentApprTab),
+    allclients:  renderAllClients,
+    clients:     renderClients,
+    worklog:     renderWorkLog,
+    checklist:   renderChecklist,
+    deadlines:   renderUndone,
+    pipeline:    () => { if (currentUser?.role === 'representative') renderPipeline(); },
+    dailyreport: renderDailyReport,
+    kpi:         () => { if (currentUser?.role === 'representative') renderKPI(); },
+    finance:     () => { if (currentUser?.role === 'representative') renderFinance(); },
+    aireview:    renderAIReview,
+    performance: () => { if (currentUser?.role === 'representative') renderPerformance(); },
+    docs:        renderDocs,
+    settings:    renderSettings,
   };
   if (map[id]) map[id]();
 }
