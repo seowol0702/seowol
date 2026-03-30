@@ -190,10 +190,18 @@ tr:hover td{background:#f8fafc;}
       <div class="nav-item" onclick="goTo('approval')"><span class="icon">✍️</span><span>결재 시스템 <span class="notif-dot" id="appr-dot" style="display:none"></span></span></div>
     </div>
     <div class="nav-group">
+      <div class="nav-label">수임 관리</div>
+      <div class="nav-item rep-only" onclick="goToWithAuth('pipeline')"><span class="icon">🚀</span><span>수임 파이프라인</span></div>
+    </div>
+    <div class="nav-group">
       <div class="nav-label">업체 관리</div>
       <div class="nav-item" onclick="goTo('allclients')"><span class="icon">📋</span><span>전체 기장 현황</span></div>
       <div class="nav-item" onclick="goTo('clients')"><span class="icon">🏢</span><span>담당 업체 현황</span></div>
       <div class="nav-item" onclick="goTo('worklog')"><span class="icon">📝</span><span>일별 업무 로그</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">업무 보고</div>
+      <div class="nav-item" onclick="goTo('dailyreport')"><span class="icon">📢</span><span>일일 업무 보고</span></div>
     </div>
     <div class="nav-group">
       <div class="nav-label">신고 관리</div>
@@ -202,8 +210,14 @@ tr:hover td{background:#f8fafc;}
       <div class="nav-item" onclick="goTo('deadlines')"><span class="icon">⚠️</span><span>미처리 업무 <span class="notif-dot" id="undone-dot" style="display:none"></span></span></div>
     </div>
     <div class="nav-group">
-      <div class="nav-label">성과</div>
+      <div class="nav-label">성과 / 관리</div>
       <div class="nav-item rep-only" id="nav-performance" onclick="goToWithAuth('performance')"><span class="icon">📊</span><span>직원별 성과</span></div>
+      <div class="nav-item rep-only" onclick="goToWithAuth('kpi')"><span class="icon">🎯</span><span>KPI 모니터링</span></div>
+      <div class="nav-item rep-only" onclick="goToWithAuth('finance')"><span class="icon">💰</span><span>손익 현황</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">AI 도구</div>
+      <div class="nav-item" onclick="goTo('aireview')"><span class="icon">🤖</span><span>AI 검토 프롬프트</span></div>
     </div>
     <div class="nav-group">
       <div class="nav-label">기타</div>
@@ -461,6 +475,144 @@ tr:hover td{background:#f8fafc;}
   </div>
 </div>
 
+<!-- ══ 수임 파이프라인 ══ -->
+<div id="section-pipeline" class="section">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div style="font-size:13px;color:#6b7280;">광고 리드부터 기장 시작까지 진행 현황을 단계별로 관리합니다.</div>
+    <button class="btn btn-p" onclick="openLeadModal()">+ 신규 리드 등록</button>
+  </div>
+  <div id="pipeline-board" style="display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;"></div>
+</div>
+
+<!-- ══ 일일 업무 보고 ══ -->
+<div id="section-dailyreport" class="section">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+    <div class="card">
+      <div class="card-title">📝 업무 보고 작성</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:8px;">
+          <select id="dr-type" style="padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;flex:1;">
+            <option value="start">🌅 시작 보고 (오전)</option>
+            <option value="end">🌆 종료 보고 (오후)</option>
+          </select>
+          <input type="date" id="dr-date" style="padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;flex:1;">
+        </div>
+        <div id="dr-start-fields">
+          <textarea id="dr-today-plan" placeholder="오늘 처리 예정 업체 및 업무 목록" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:70px;resize:none;box-sizing:border-box;"></textarea>
+          <textarea id="dr-pending" placeholder="전날 미완 항목 (없으면 '없음')" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
+          <textarea id="dr-help" placeholder="도움이 필요한 사항 (없으면 '없음')" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
+        </div>
+        <div id="dr-end-fields" style="display:none;">
+          <textarea id="dr-done" placeholder="오늘 처리 완료된 업체 및 업무" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:70px;resize:none;box-sizing:border-box;"></textarea>
+          <textarea id="dr-undone" placeholder="처리 못한 항목 + 사유" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
+          <textarea id="dr-tomorrow" placeholder="내일 처리 예정" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;margin-top:6px;box-sizing:border-box;"></textarea>
+        </div>
+        <button class="btn btn-p" onclick="submitDailyReport()" style="align-self:flex-end;">보고 제출</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 오늘 보고 현황 <span id="dr-today-summary" style="font-size:11px;color:#6b7280;font-weight:400;"></span></div>
+      <div id="dr-today-status"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">📋 보고 이력</div>
+      <div style="display:flex;gap:8px;">
+        <select id="dr-filter-staff" style="padding:5px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;" onchange="renderDailyReport()">
+          <option value="">전체 직원</option>
+        </select>
+        <input type="date" id="dr-filter-date" style="padding:5px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;" onchange="renderDailyReport()">
+      </div>
+    </div>
+    <div id="dr-history"></div>
+  </div>
+</div>
+
+<!-- ══ KPI 모니터링 ══ -->
+<div id="section-kpi" class="section">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <label style="font-size:13px;font-weight:600;color:var(--navy);">기준 월:</label>
+      <input type="month" id="kpi-month" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;" onchange="renderKPI()">
+    </div>
+    <button class="btn btn-p" onclick="openKPIInputModal()">+ KPI 실적 입력</button>
+  </div>
+  <div class="stat-grid" id="kpi-stat-grid"></div>
+  <div class="two-col" style="margin-top:18px;">
+    <div class="card"><div class="card-title">📊 직원별 KPI 달성률</div><canvas id="kpiChart" height="240"></canvas></div>
+    <div class="card"><div class="card-title">📋 KPI 기준표</div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr style="background:#f8fafc;"><th style="padding:7px 10px;text-align:left;border-bottom:1px solid #e2e8f0;">KPI 항목</th><th style="padding:7px 10px;text-align:center;border-bottom:1px solid #e2e8f0;">목표</th><th style="padding:7px 10px;text-align:center;border-bottom:1px solid #e2e8f0;">이번 달</th></tr></thead>
+        <tbody id="kpi-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px;">
+    <div class="card-title">📈 월별 KPI 추이</div>
+    <div id="kpi-detail-table"></div>
+  </div>
+</div>
+
+<!-- ══ 손익 현황 ══ -->
+<div id="section-finance" class="section">
+  <div class="stat-grid" id="fin-stat-grid" style="margin-bottom:18px;"></div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">📈 월별 손익 추이 (기획 대비 실적)</div>
+      <canvas id="finChart" height="260"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 수임 목표 vs 현황</div>
+      <div id="fin-target-table"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">💸 월별 수임비 지출 입력</div>
+      <button class="btn btn-o" onclick="openFinInputModal()">+ 지출 입력</button>
+    </div>
+    <div id="fin-expense-table"></div>
+  </div>
+</div>
+
+<!-- ══ AI 검토 프롬프트 ══ -->
+<div id="section-aireview" class="section">
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">🤖 AI 기장 검토 프롬프트 생성기</div>
+      <p style="font-size:12px;color:#6b7280;margin-bottom:14px;">업체를 선택하면 Claude에게 바로 보낼 수 있는 검토 프롬프트가 자동 생성됩니다. 복사해서 Claude 대화창에 붙여넣고 전표 엑셀을 첨부하세요.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--navy);display:block;margin-bottom:4px;">업체 선택</label>
+          <select id="ai-client-sel" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;" onchange="generateAIPrompt()">
+            <option value="">-- 업체를 선택하세요 --</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--navy);display:block;margin-bottom:4px;">검토 기준 월</label>
+          <input type="month" id="ai-month" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;" onchange="generateAIPrompt()">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--navy);display:block;margin-bottom:4px;">추가 검토 요청사항 (선택)</label>
+          <textarea id="ai-extra" placeholder="예: 이번 달 접대비가 특히 많으니 중점 검토 바람" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:60px;resize:none;box-sizing:border-box;" oninput="generateAIPrompt()"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="card-title" style="margin:0;">📋 생성된 프롬프트</div>
+        <button class="btn btn-p" onclick="copyAIPrompt()" id="ai-copy-btn" disabled>📋 복사</button>
+      </div>
+      <textarea id="ai-prompt-output" readonly style="flex:1;min-height:340px;width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:6px;font-size:11.5px;line-height:1.7;background:#f8fafc;color:#374151;resize:none;box-sizing:border-box;font-family:inherit;">업체를 선택하면 프롬프트가 자동 생성됩니다.</textarea>
+    </div>
+  </div>
+  <div class="card" style="margin-top:18px;">
+    <div class="card-title">📚 검토 항목 가이드</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;" id="ai-guide-grid"></div>
+  </div>
+</div>
+
 <!-- ══ 9. 성과 ══ -->
 <div id="section-performance" class="section">
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
@@ -621,41 +773,91 @@ tr:hover td{background:#f8fafc;}
       <input type="radio" name="contractType" id="ct-tf" value="신고대리" onchange="toggleContractFields()">
       <label for="ct-tf">📑 신고대리</label>
     </div>
-    <div class="form-grid">
-      <div class="fg"><label>담당 대표 *</label><select id="modal-rep"></select></div>
-      <div class="fg"><label>담당 직원 *</label><select id="modal-staff"></select></div>
-      <div class="fg"><label>업체명 *</label><input type="text" id="modal-biz-name" placeholder="(주)OO기업"></div>
-      <div class="fg"><label>사업자번호</label><input type="text" id="modal-biz-no" placeholder="000-00-00000"></div>
-      <div class="fg"><label>구분</label><select id="modal-biz-type"><option>개인</option><option>법인</option></select></div>
-      <div class="fg"><label>수임 경로</label><select id="modal-source"><option>직접</option><option>소개</option><option>광고</option><option>기타</option></select></div>
-      <div class="fg"><label>수임 시작일</label><input type="date" id="modal-start-date"></div>
-      <div class="fg"><label>현황</label><select id="modal-status"><option>정상</option><option>보류</option><option>해지</option></select></div>
+    <!-- 탭 -->
+    <div class="tabs" style="margin-bottom:12px;">
+      <div class="tab active" onclick="switchClientModalTab('basic',this)">📋 기본 정보</div>
+      <div class="tab" onclick="switchClientModalTab('contact',this)">👤 담당자 정보</div>
+      <div class="tab" onclick="switchClientModalTab('account',this)">🔐 홈택스·계정</div>
+      <div class="tab" onclick="switchClientModalTab('doccheck',this)">📄 서류 징구</div>
     </div>
-    <!-- 기장 전용 -->
-    <div id="bk-fields" style="margin-top:10px;">
-      <div style="font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:7px;">💰 수수료 정보 (기장)</div>
+
+    <!-- 탭1: 기본 정보 -->
+    <div id="cm-tab-basic">
       <div class="form-grid">
-        <div class="fg"><label>기장료 (월, 원)</label><input type="number" id="modal-fee" placeholder="200000"></div>
-        <div class="fg"><label>부가세 수수료 (원)</label><input type="number" id="modal-vat-fee" placeholder="100000"></div>
-        <div class="fg"><label>법인세 수수료 (원)</label><input type="number" id="modal-corp-fee" placeholder="0"></div>
+        <div class="fg"><label>담당 대표 *</label><select id="modal-rep"></select></div>
+        <div class="fg"><label>담당 직원 *</label><select id="modal-staff"></select></div>
+        <div class="fg"><label>업체명 *</label><input type="text" id="modal-biz-name" placeholder="(주)OO기업"></div>
+        <div class="fg"><label>대표자명</label><input type="text" id="modal-ceo-name" placeholder="홍길동"></div>
+        <div class="fg"><label>사업자번호</label><input type="text" id="modal-biz-no" placeholder="000-00-00000"></div>
+        <div class="fg"><label>구분</label><select id="modal-biz-type"><option>개인</option><option>법인</option></select></div>
+        <div class="fg"><label>부가세 구분</label><select id="modal-vat-type"><option>과세</option><option>면세</option><option>간이</option></select></div>
+        <div class="fg"><label>수임 경로</label><select id="modal-source"><option>직접</option><option>소개</option><option>광고</option><option>기존</option><option>기타</option></select></div>
+        <div class="fg"><label>수임 시작일</label><input type="date" id="modal-start-date"></div>
+        <div class="fg"><label>현황</label><select id="modal-status"><option>정상</option><option>보류</option><option>해지</option><option>폐업예정</option><option>폐업</option></select></div>
       </div>
-    </div>
-    <!-- 신고대리 전용 -->
-    <div id="tf-fields" style="display:none;margin-top:10px;">
-      <div style="font-size:11.5px;font-weight:700;color:#6d28d9;margin-bottom:7px;">📑 신고대리 정보</div>
-      <div class="form-grid">
-        <div class="fg"><label>신고 종류 *</label>
-          <select id="modal-filing-type">
-            <option>부가세신고</option><option>법인세신고</option><option>종합소득세신고</option>
-            <option>원천세신고</option><option>연말정산</option><option>증여세신고</option>
-            <option>상속세신고</option><option>양도소득세신고</option><option>기타신고</option>
-          </select>
+      <!-- 기장 전용 -->
+      <div id="bk-fields" style="margin-top:10px;">
+        <div style="font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:7px;">💰 수수료 정보</div>
+        <div class="form-grid">
+          <div class="fg"><label>기장료 (월, 원)</label><input type="number" id="modal-fee" placeholder="200000"></div>
+          <div class="fg"><label>부가세 수수료 (원)</label><input type="number" id="modal-vat-fee" placeholder="100000"></div>
+          <div class="fg"><label>법인세 수수료 (원)</label><input type="number" id="modal-corp-fee" placeholder="0"></div>
         </div>
-        <div class="fg"><label>신고 기간</label><input type="text" id="modal-filing-period" placeholder="예: 2025년 1기"></div>
-        <div class="fg"><label>수수료 (원)</label><input type="number" id="modal-fee-single" placeholder="200000"></div>
+      </div>
+      <!-- 신고대리 전용 -->
+      <div id="tf-fields" style="display:none;margin-top:10px;">
+        <div style="font-size:11.5px;font-weight:700;color:#6d28d9;margin-bottom:7px;">📑 신고대리 정보</div>
+        <div class="form-grid">
+          <div class="fg"><label>신고 종류 *</label>
+            <select id="modal-filing-type">
+              <option>부가세신고</option><option>법인세신고</option><option>종합소득세신고</option>
+              <option>원천세신고</option><option>연말정산</option><option>증여세신고</option>
+              <option>상속세신고</option><option>양도소득세신고</option><option>기타신고</option>
+            </select>
+          </div>
+          <div class="fg"><label>신고 기간</label><input type="text" id="modal-filing-period" placeholder="예: 2025년 1기"></div>
+          <div class="fg"><label>수수료 (원)</label><input type="number" id="modal-fee-single" placeholder="200000"></div>
+        </div>
+      </div>
+      <div class="fg" style="margin-top:10px;"><label>비고</label><input type="text" id="modal-note" placeholder="특이사항 메모"></div>
+    </div>
+
+    <!-- 탭2: 담당자 정보 -->
+    <div id="cm-tab-contact" style="display:none;">
+      <div class="form-grid">
+        <div class="fg"><label>담당자명 (거래처측)</label><input type="text" id="modal-contact-name" placeholder="김담당"></div>
+        <div class="fg"><label>연락처</label><input type="text" id="modal-phone" placeholder="010-0000-0000"></div>
+        <div class="fg"><label>이메일</label><input type="text" id="modal-email" placeholder="example@naver.com"></div>
+        <div class="fg"><label>주민등록번호</label><input type="text" id="modal-resident-no" placeholder="000000-0000000"></div>
+        <div class="fg"><label>법인등록번호</label><input type="text" id="modal-corp-reg-no" placeholder="000000-0000000"></div>
       </div>
     </div>
-    <div class="fg" style="margin-top:10px;"><label>비고</label><input type="text" id="modal-note" placeholder="특이사항 메모"></div>
+
+    <!-- 탭3: 홈택스·계정 -->
+    <div id="cm-tab-account" style="display:none;">
+      <div style="font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:8px;">🏛️ 홈택스</div>
+      <div class="form-grid" style="margin-bottom:14px;">
+        <div class="fg"><label>홈택스 ID</label><input type="text" id="modal-hometax-id" placeholder="아이디"></div>
+        <div class="fg"><label>홈택스 PW</label><input type="text" id="modal-hometax-pw" placeholder="비밀번호"></div>
+      </div>
+      <div style="font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:8px;">🛵 배달 플랫폼 계정</div>
+      <table style="font-size:12px;width:100%;margin-bottom:10px;">
+        <thead><tr><th style="background:var(--navy);color:#fff;padding:6px 8px;width:80px;">플랫폼</th><th style="background:var(--navy);color:#fff;padding:6px 8px;">ID</th><th style="background:var(--navy);color:#fff;padding:6px 8px;">PW</th></tr></thead>
+        <tbody>
+          <tr><td style="padding:4px 6px;font-weight:600;">배민 1</td><td><input class="fg" style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-baemin1-id"></td><td><input style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-baemin1-pw"></td></tr>
+          <tr><td style="padding:4px 6px;font-weight:600;">배민 2</td><td><input style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-baemin2-id"></td><td><input style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-baemin2-pw"></td></tr>
+          <tr><td style="padding:4px 6px;font-weight:600;">쿠팡이츠</td><td><input style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-coupang-id"></td><td><input style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-coupang-pw"></td></tr>
+          <tr><td style="padding:4px 6px;font-weight:600;">요기요</td><td><input style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-yogiyo-id"></td><td><input style="width:100%;padding:5px 7px;border:1px solid #e2e8f0;border-radius:5px;font-size:12px;" id="modal-yogiyo-pw"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="cm-tab-doccheck" style="display:none;">
+      <div style="font-size:11.5px;color:#6b7280;margin-bottom:12px;">계약 당일 징구해야 하는 서류입니다. 수령 완료된 항목을 체크하세요.</div>
+      <div id="cm-docstatus-list" style="display:flex;flex-direction:column;gap:7px;"></div>
+      <div style="margin-top:12px;font-size:12px;color:#6b7280;background:#f8fafc;padding:10px;border-radius:6px;">
+        💡 <strong>서류 징구가 완료되어야</strong> 더존 스크래핑 및 홈택스 자동 수집이 정상 작동합니다.
+      </div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-o" onclick="closeModal('add-client-modal')">취소</button>
       <button class="btn btn-p" onclick="saveClient()">저장</button>
@@ -745,16 +947,29 @@ tr:hover td{background:#f8fafc;}
   </div>
 </div>
 
+<!-- ══ 공용 모달 (파이프라인·KPI·손익 입력용) ══ -->
+<div class="modal-bg" id="generic-modal" style="display:none;">
+  <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto;">
+    <div class="modal-title" id="generic-modal-title">입력</div>
+    <div id="generic-modal-body" style="padding:4px 0;"></div>
+    <div class="modal-footer" style="margin-top:12px;">
+      <button class="btn btn-o" onclick="closeModal('generic-modal')">닫기</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── 데이터 스토어 ──
-const KEYS = { clients:'sw3_clients', logs:'sw3_logs', staff:'sw3_staff', approvals:'sw3_approvals', checks:'sw3_checks' };
+const KEYS = { clients:'sw3_clients', logs:'sw3_logs', staff:'sw3_staff', approvals:'sw3_approvals', checks:'sw3_checks', leads:'sw3_leads', dailyReports:'sw3_daily', kpiLogs:'sw3_kpi' };
 let db = {
-  clients:   JSON.parse(localStorage.getItem(KEYS.clients)   || '[]'),
-  logs:      JSON.parse(localStorage.getItem(KEYS.logs)      || '[]'),
-  staff:     JSON.parse(localStorage.getItem(KEYS.staff)     || '[]'),
-  approvals: JSON.parse(localStorage.getItem(KEYS.approvals) || '[]'),
-  checks:    JSON.parse(localStorage.getItem(KEYS.checks)    || '[]'),
+  clients:      JSON.parse(localStorage.getItem(KEYS.clients)      || '[]'),
+  logs:         JSON.parse(localStorage.getItem(KEYS.logs)         || '[]'),
+  staff:        JSON.parse(localStorage.getItem(KEYS.staff)        || '[]'),
+  approvals:    JSON.parse(localStorage.getItem(KEYS.approvals)    || '[]'),
+  checks:       JSON.parse(localStorage.getItem(KEYS.checks)       || '[]'),
+  leads:        JSON.parse(localStorage.getItem(KEYS.leads)        || '[]'),
+  dailyReports: JSON.parse(localStorage.getItem(KEYS.dailyReports) || '[]'),
+  kpiLogs:      JSON.parse(localStorage.getItem(KEYS.kpiLogs)      || '[]'),
 };
 function save() {
   Object.keys(KEYS).forEach(k => localStorage.setItem(KEYS[k], JSON.stringify(db[k])));
@@ -774,30 +989,1364 @@ if (db.staff.length === 0) {
   ];
 }
 
-// ── 초기 업체 데이터 ──
-if (db.clients.length === 0) {
+// ── 초기 업체 데이터 ── (DATA_VER 변경 시 강제 덮어쓰기)
+const DATA_VER = 3;
+if (Number(localStorage.getItem('sw3_data_ver') || 0) < DATA_VER) {
   db.clients = [
-    {id:1,contractType:'기장',rep:'조용범',staff:'이수빈',name:'(주)AA기업',bizNo:'123-45-67890',type:'법인',fee:350000,vatFee:150000,corpFee:500000,source:'직접',startDate:'2024-01-01',status:'정상',note:''},
-    {id:2,contractType:'기장',rep:'조용범',staff:'이수빈',name:'BB상사',bizNo:'234-56-78901',type:'개인',fee:200000,vatFee:100000,corpFee:0,source:'직접',startDate:'2024-03-01',status:'정상',note:''},
-    {id:3,contractType:'기장',rep:'조용범',staff:'조예슬',name:'CC식당',bizNo:'345-67-89012',type:'개인',fee:150000,vatFee:80000,corpFee:0,source:'광고',startDate:'2024-06-01',status:'정상',note:''},
-    {id:4,contractType:'기장',rep:'백승삼',staff:'황지우',name:'(주)DD제조',bizNo:'456-78-90123',type:'법인',fee:400000,vatFee:180000,corpFee:600000,source:'직접',startDate:'2023-11-01',status:'정상',note:''},
-    {id:5,contractType:'기장',rep:'백승삼',staff:'황지우',name:'EE카페',bizNo:'567-89-01234',type:'개인',fee:120000,vatFee:60000,corpFee:0,source:'광고',startDate:'2025-01-01',status:'정상',note:''},
-    {id:6,contractType:'기장',rep:'김석주',staff:'김석주',name:'FF컨설팅',bizNo:'678-90-12345',type:'법인',fee:280000,vatFee:130000,corpFee:400000,source:'소개',startDate:'2024-09-01',status:'정상',note:''},
-    {id:7,contractType:'신고대리',rep:'조용범',staff:'이수빈',name:'GG무역',bizNo:'789-01-23456',type:'개인',fee:200000,vatFee:0,corpFee:0,filingType:'종합소득세신고',filingPeriod:'2024년도',source:'소개',startDate:'2025-03-01',status:'정상',note:''},
-    {id:8,contractType:'신고대리',rep:'김영란',staff:'김영란',name:'(주)HH물산',bizNo:'890-12-34567',type:'법인',fee:500000,vatFee:0,corpFee:0,filingType:'법인세신고',filingPeriod:'2024 사업연도',source:'직접',startDate:'2025-02-01',status:'정상',note:''},
-  ];
-  db.logs = [
-    {id:1,date:'2025-04-01',staff:'이수빈',client:'(주)AA기업',type:'전표입력',count:8,hours:2.0,status:'완료',nextDate:'',note:''},
-    {id:2,date:'2025-04-01',staff:'이수빈',client:'BB상사',type:'전표입력',count:5,hours:1.5,status:'완료',nextDate:'',note:''},
-    {id:3,date:'2025-04-01',staff:'황지우',client:'(주)DD제조',type:'부가세신고',count:1,hours:3.0,status:'완료',nextDate:'',note:''},
-    {id:4,date:'2025-04-02',staff:'조예슬',client:'CC식당',type:'전표입력',count:4,hours:1.0,status:'완료',nextDate:'',note:''},
-    {id:5,date:'2025-04-02',staff:'황지우',client:'EE카페',type:'전표입력',count:3,hours:1.0,status:'진행중',nextDate:'2025-04-05',note:'증빙 1건 미수'},
-  ];
-  db.approvals = [
-    {id:1,drafter:'이수빈',reviewer:'조용범',type:'부가세 신고 결재',client:'(주)AA기업',title:'2025년 1기 (주)AA기업 부가세 신고 결재',content:'부가세 확정신고 완료. 납부세액 1,200,000원.',memo:'납부세액 1,200,000원',status:'approved',submittedAt:'2025-01-24',reviewedAt:'2025-01-25',comment:'확인 완료. 승인합니다.'},
-    {id:2,drafter:'조예슬',reviewer:'조용범',type:'전표 검토 결재',client:'CC식당',title:'2025년 4월 CC식당 전표 검토 결재',content:'4월분 전표 입력 완료. 증빙 4건 처리. 특이사항 없음.',memo:'총 처리 4건',status:'pending',submittedAt:'2025-04-03',reviewedAt:null,comment:''},
-    {id:3,drafter:'황지우',reviewer:'백승삼',type:'부가세 신고 결재',client:'EE카페',title:'2025년 1기 EE카페 부가세 신고 결재',content:'부가세 신고 준비 중. 증빙 1건 추가 수령 예정.',memo:'',status:'pending',submittedAt:'2025-04-02',reviewedAt:null,comment:''},
-  ];
+  {
+    "id": 1,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "다은담다",
+    "ceoName": "김다은",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "7252000771",
+    "residentNo": "9207232451611",
+    "corpRegNo": "",
+    "contactName": "이규민",
+    "phone": "010-8540-6003",
+    "email": "",
+    "hometaxId": "damda0314",
+    "hometaxPw": "kim44076003@",
+    "rep": "",
+    "staff": "",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 2,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "(주)믹스위즈",
+    "ceoName": "김성민",
+    "type": "법인",
+    "vatType": "과세",
+    "bizNo": "3148623866",
+    "residentNo": "7709191454811",
+    "corpRegNo": "1601110298235",
+    "contactName": "박윤미",
+    "phone": "010-9741-2007",
+    "email": "copyfactory@naver.com",
+    "hometaxId": "copyfactory",
+    "hometaxPw": "!!cnu28866",
+    "rep": "",
+    "staff": "이수빈",
+    "fee": 165000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 3,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "달쥬과일상점 성수54호점",
+    "ceoName": "김소현",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "8613601344",
+    "residentNo": "9711262018314",
+    "corpRegNo": "",
+    "contactName": "김소현",
+    "phone": "010-9463-9486",
+    "email": "",
+    "hometaxId": "ohi1126",
+    "hometaxPw": "rmaghwpdlf12!",
+    "rep": "",
+    "staff": "",
+    "fee": 55000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 4,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "주식회사 원우월드",
+    "ceoName": "김옥자",
+    "type": "법인",
+    "vatType": "과세",
+    "bizNo": "3208703445",
+    "residentNo": "6508022011835",
+    "corpRegNo": "1101119081996",
+    "contactName": "정길수",
+    "phone": "010-5755-8601",
+    "email": "",
+    "hometaxId": "c2377571",
+    "hometaxPw": "1q2w3e4r!!",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 5,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "달쥬과일상점 광화문47호점",
+    "ceoName": "김은성",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "6661802521",
+    "residentNo": "9207211032818",
+    "corpRegNo": "",
+    "contactName": "김은성",
+    "phone": "010-9612-0721",
+    "email": "",
+    "hometaxId": "zkrn12",
+    "hometaxPw": "92dud721!",
+    "rep": "",
+    "staff": "",
+    "fee": 77000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 6,
+    "contractType": "기장",
+    "status": "폐업",
+    "name": "쓰리엑스라지커피",
+    "ceoName": "이동이",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "5460902583",
+    "residentNo": "8711061644011",
+    "corpRegNo": "",
+    "contactName": "이동이",
+    "phone": "010-4300-6994",
+    "email": "",
+    "hometaxId": "movementis",
+    "hometaxPw": "3820dleh!!",
+    "rep": "",
+    "staff": "",
+    "fee": 55000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 7,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "(주)이수아이피센터",
+    "ceoName": "김정수",
+    "type": "법인",
+    "vatType": "과세",
+    "bizNo": "6598100572",
+    "residentNo": "7603111350117",
+    "corpRegNo": "1501110232368",
+    "contactName": "김정수",
+    "phone": "010-5586-6064",
+    "email": "ipjskim@hanmail.net",
+    "hometaxId": "isuip2017",
+    "hometaxPw": "isuip2017!@#",
+    "rep": "",
+    "staff": "이수빈",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 8,
+    "contractType": "기장",
+    "status": "폐업",
+    "name": "달쥬과일상점 광화문47호점",
+    "ceoName": "김태홍",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "2624101293",
+    "residentNo": "8503241006719",
+    "corpRegNo": "",
+    "contactName": "김형민",
+    "phone": "010-9782-5949",
+    "email": "love_4_u_@naver.com",
+    "hometaxId": "rkaWKd7",
+    "hometaxPw": "ksj5331982@",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 9,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "이수국제특허법률사무소",
+    "ceoName": "김정수",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "3170391415",
+    "residentNo": "7603111350117",
+    "corpRegNo": "",
+    "contactName": "김정수",
+    "phone": "010-5586-6064",
+    "email": "ipjskim@hanmail.net",
+    "hometaxId": "isuip1",
+    "hometaxPw": "jskimpt7!@#",
+    "rep": "",
+    "staff": "이수빈",
+    "fee": 165000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 10,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "(주)가을날의동화",
+    "ceoName": "김척",
+    "type": "법인",
+    "vatType": "면세",
+    "bizNo": "8158604004",
+    "residentNo": "7106211537911",
+    "corpRegNo": "",
+    "contactName": "김척",
+    "phone": "010-4656-0620",
+    "email": "",
+    "hometaxId": "autumnfairy",
+    "hometaxPw": "ghaxortm1!",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 11,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "주식회사 디에프시",
+    "ceoName": "김형민",
+    "type": "법인",
+    "vatType": "과세",
+    "bizNo": "2748703458",
+    "residentNo": "7811231079617",
+    "corpRegNo": "7811231079617",
+    "contactName": "김형민",
+    "phone": "010-9782-5949",
+    "email": "dodge555@naver.com",
+    "hometaxId": "dodge555",
+    "hometaxPw": "ksj5331982@@!!",
+    "rep": "",
+    "staff": "",
+    "fee": 220000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 12,
+    "contractType": "기장",
+    "status": "폐업",
+    "name": "총각네 고깃간",
+    "ceoName": "박진식",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "2159260279",
+    "residentNo": "7208151326215",
+    "corpRegNo": "",
+    "contactName": "박진식",
+    "phone": "010-4322-4693",
+    "email": "pjs4693@naver.com",
+    "hometaxId": "zx2045",
+    "hometaxPw": "tlsdud4693!",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 13,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "덴켄마운트",
+    "ceoName": "김혜민",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "1754300053",
+    "residentNo": "8506292030124",
+    "corpRegNo": "",
+    "contactName": "김서영",
+    "phone": "010-9181-8799",
+    "email": "",
+    "hometaxId": "dk6607",
+    "hometaxPw": "denkenmount1*",
+    "rep": "",
+    "staff": "",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 14,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "삼전전설",
+    "ceoName": "김흥석",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "2220795159",
+    "residentNo": "6602211347612",
+    "corpRegNo": "",
+    "contactName": "김흥석",
+    "phone": "010-2796-0733",
+    "email": "",
+    "hometaxId": "sj0733",
+    "hometaxPw": "q2468a2468*",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 15,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "숯덩이",
+    "ceoName": "박신영",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "2976100788",
+    "residentNo": "11123080515",
+    "corpRegNo": "",
+    "contactName": "박신영",
+    "phone": "010-7299-4693",
+    "email": "sutdeongi@naver.com",
+    "hometaxId": "sutdeongi4693",
+    "hometaxPw": "ksh837475!",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 16,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "고진 정육식당",
+    "ceoName": "박진식",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "3420503186",
+    "residentNo": "7208151326215",
+    "corpRegNo": "",
+    "contactName": "박진식",
+    "phone": "010-4322-4693",
+    "email": "pjs4693@naver.com",
+    "hometaxId": "zx2045",
+    "hometaxPw": "tlsdud4693!",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 17,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "고진축산",
+    "ceoName": "박진식",
+    "type": "개인",
+    "vatType": "면세",
+    "bizNo": "8079701813",
+    "residentNo": "7208151326215",
+    "corpRegNo": "",
+    "contactName": "박진식",
+    "phone": "010-4322-4693",
+    "email": "pjs4693@naver.com",
+    "hometaxId": "zx2045",
+    "hometaxPw": "tlsdud4693!",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 18,
+    "contractType": "신고대리",
+    "status": "정상",
+    "name": "남매떡집",
+    "ceoName": "박찬주",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "4350301564",
+    "residentNo": "9304231221611",
+    "corpRegNo": "",
+    "contactName": "박찬주",
+    "phone": "010-8527-6722",
+    "email": "",
+    "hometaxId": "chanju4022",
+    "hometaxPw": "km62heasdz!",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 19,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "케어잉글리쉬영어학원",
+    "ceoName": "백승우",
+    "type": "개인",
+    "vatType": "면세",
+    "bizNo": "2159418004",
+    "residentNo": "7802281106414",
+    "corpRegNo": "",
+    "contactName": "백승우",
+    "phone": "010-6357-0529",
+    "email": "flyer82@naver.com",
+    "hometaxId": "flyer82",
+    "hometaxPw": "1Qaz2wsx!!",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 20,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "샘마을 경희체육관",
+    "ceoName": "서병석",
+    "type": "개인",
+    "vatType": "면세",
+    "bizNo": "3980901097",
+    "residentNo": "7503151538216",
+    "corpRegNo": "",
+    "contactName": "서병석",
+    "phone": "010-9118-2357",
+    "email": "",
+    "hometaxId": "tkd10586",
+    "hometaxPw": "qudtjr12!!",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 21,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "한국파워점핑 줄넘기&태권도",
+    "ceoName": "서병석",
+    "type": "개인",
+    "vatType": "면세",
+    "bizNo": "7039501685",
+    "residentNo": "7503151538216",
+    "corpRegNo": "",
+    "contactName": "서병석",
+    "phone": "010-9118-2357",
+    "email": "",
+    "hometaxId": "tkd10586",
+    "hometaxPw": "qudtjr12!!",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 22,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "주식회사 엔토크",
+    "ceoName": "손성강",
+    "type": "법인",
+    "vatType": "과세",
+    "bizNo": "1928103756",
+    "residentNo": "6707151167610",
+    "corpRegNo": "",
+    "contactName": "손성강",
+    "phone": "010-3456-6289",
+    "email": "",
+    "hometaxId": "",
+    "hometaxPw": "",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 23,
+    "contractType": "신고대리",
+    "status": "정상",
+    "name": "달쥬과일상점 광진18호점",
+    "ceoName": "심은명",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "5493701096",
+    "residentNo": "7708142162018",
+    "corpRegNo": "",
+    "contactName": "심은명",
+    "phone": "010-6889-8175",
+    "email": "",
+    "hometaxId": "simeun1129",
+    "hometaxPw": "Sim0712!!",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 24,
+    "contractType": "신고대리",
+    "status": "정상",
+    "name": "단온니",
+    "ceoName": "안정현",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "3432801782",
+    "residentNo": "9508062085713",
+    "corpRegNo": "",
+    "contactName": "안정현",
+    "phone": "010-8251-7687",
+    "email": "",
+    "hometaxId": "dksehowl0806",
+    "hometaxPw": "njsh@5259",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 25,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "세무경정컨설팅",
+    "ceoName": "윤성훈",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "1582601744",
+    "residentNo": "7612151682827",
+    "corpRegNo": "",
+    "contactName": "윤성훈",
+    "phone": "010-4806-8088",
+    "email": "",
+    "hometaxId": "gemdol",
+    "hometaxPw": "1q2w3e4r!!",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 26,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "황철수피자 흥덕점",
+    "ceoName": "이규민",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "5190803074",
+    "residentNo": "9103171351319",
+    "corpRegNo": "",
+    "contactName": "이규민",
+    "phone": "010-8540-6003",
+    "email": "",
+    "hometaxId": "",
+    "hometaxPw": "",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 27,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "샘마을 한국파워 줄넘기",
+    "ceoName": "이병금",
+    "type": "개인",
+    "vatType": "면세",
+    "bizNo": "3980901097",
+    "residentNo": "8304242231319",
+    "corpRegNo": "",
+    "contactName": "이병금",
+    "phone": "010-7495-3477",
+    "email": "",
+    "hometaxId": "dlqudrma",
+    "hometaxPw": "tjwlgn12!",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 28,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "위들리",
+    "ceoName": "이상민",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "2163101665",
+    "residentNo": "9201031117719",
+    "corpRegNo": "",
+    "contactName": "이상민",
+    "phone": "010-5506-2172",
+    "email": "kssccorp@kssccorp.com",
+    "hometaxId": "TheLink",
+    "hometaxPw": "F72ddjpB@P!y",
+    "rep": "",
+    "staff": "",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 29,
+    "contractType": "기장",
+    "status": "폐업예정",
+    "name": "한국서비스지원센터",
+    "ceoName": "이상민",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "1413001383",
+    "residentNo": "9201031117719",
+    "corpRegNo": "",
+    "contactName": "이상민",
+    "phone": "010-5506-2172",
+    "email": "kssccorp@kssccorp.com",
+    "hometaxId": "kssccorp",
+    "hometaxPw": "iW7XhhRwRZoM8h-",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 30,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "한국기계공구",
+    "ceoName": "이성운",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "1273246812",
+    "residentNo": "6810241010014",
+    "corpRegNo": "",
+    "contactName": "유은실",
+    "phone": "010-6429-6416",
+    "email": "brave68@naver.com",
+    "hometaxId": "parang68",
+    "hometaxPw": "v0325vyes@@",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 31,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "차돌풍 종로점",
+    "ceoName": "이해기",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "1120674210",
+    "residentNo": "7603171683111",
+    "corpRegNo": "",
+    "contactName": "이해기",
+    "phone": "010-9211-1244",
+    "email": "",
+    "hometaxId": "netbestk",
+    "hometaxPw": "Happy1244!",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 32,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "장석순",
+    "ceoName": "장석순",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "6871003365",
+    "residentNo": "8704041012719",
+    "corpRegNo": "",
+    "contactName": "김보라",
+    "phone": "010-2783-7833",
+    "email": "",
+    "hometaxId": "",
+    "hometaxPw": "",
+    "rep": "",
+    "staff": "",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 33,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "동서기공",
+    "ceoName": "조계수",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "1391073402",
+    "residentNo": "5409141221217",
+    "corpRegNo": "",
+    "contactName": "김서영",
+    "phone": "010-9181-8799",
+    "email": "",
+    "hometaxId": "ds2422",
+    "hometaxPw": "dsds242214*",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 34,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "동서기공(임대)",
+    "ceoName": "조계수",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "2211821311",
+    "residentNo": "5409141221217",
+    "corpRegNo": "",
+    "contactName": "김서영",
+    "phone": "010-9181-8799",
+    "email": "",
+    "hometaxId": "2422ds",
+    "hometaxPw": "**ds613200",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 35,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "주식회사 덴켄",
+    "ceoName": "조계수, 조성완",
+    "type": "법인",
+    "vatType": "과세",
+    "bizNo": "5408802881",
+    "residentNo": "8309041182610",
+    "corpRegNo": "",
+    "contactName": "김서영",
+    "phone": "010-9181-8799",
+    "email": "",
+    "hometaxId": "denken1",
+    "hometaxPw": "den1983**",
+    "rep": "",
+    "staff": "",
+    "fee": 165000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 36,
+    "contractType": "신고대리",
+    "status": "정상",
+    "name": "달쥬과일상점 부천51호점",
+    "ceoName": "최주영",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "4760303184",
+    "residentNo": "9709101222513",
+    "corpRegNo": "",
+    "contactName": "최주영",
+    "phone": "010-7507-5468",
+    "email": "tlffhrghawm@naver.com",
+    "hometaxId": "tlffhrghawm",
+    "hometaxPw": "chlwndud123!",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 37,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "달쥬과일상점 용산7호점",
+    "ceoName": "한복식",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "8820703280",
+    "residentNo": "6512011458118",
+    "corpRegNo": "",
+    "contactName": "한복식",
+    "phone": "010-3522-3678",
+    "email": "",
+    "hometaxId": "hbs6407",
+    "hometaxPw": "KMN13579@",
+    "rep": "",
+    "staff": "",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 38,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "주영메디칼",
+    "ceoName": "허성욱",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "6030857744",
+    "residentNo": "6703221094815",
+    "corpRegNo": "",
+    "contactName": "이태진",
+    "phone": "010-7401-9991",
+    "email": "",
+    "hometaxId": "hsw7660",
+    "hometaxPw": "@h2940496h",
+    "rep": "",
+    "staff": "",
+    "fee": 110000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 39,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "허성욱부동산",
+    "ceoName": "허성욱",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "6391000277",
+    "residentNo": "6703221094815",
+    "corpRegNo": "",
+    "contactName": "허성욱",
+    "phone": "010-4554-6236",
+    "email": "",
+    "hometaxId": "hsw7660",
+    "hometaxPw": "@h2940496h",
+    "rep": "",
+    "staff": "",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 40,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "기린한의원",
+    "ceoName": "황준호",
+    "type": "개인",
+    "vatType": "면세",
+    "bizNo": "5029427687",
+    "residentNo": "6003111140210",
+    "corpRegNo": "",
+    "contactName": "황준호",
+    "phone": "010-2837-5324",
+    "email": "",
+    "hometaxId": "ds5tlo",
+    "hometaxPw": "7675324kl*",
+    "rep": "",
+    "staff": "",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 41,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "(주)파밀리데이터",
+    "ceoName": "임일균",
+    "type": "법인",
+    "vatType": "과세",
+    "bizNo": "4798601951",
+    "residentNo": "6511071543613",
+    "corpRegNo": "",
+    "contactName": "임일균",
+    "phone": "010-5767-7647",
+    "email": "stmlig@familidata.co.kr",
+    "hometaxId": "stmlig65",
+    "hometaxPw": "fmd576712!",
+    "rep": "",
+    "staff": "김석주",
+    "fee": 165000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 42,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "행복나눔공동근로복지기금",
+    "ceoName": "임일균",
+    "type": "법인",
+    "vatType": "면세",
+    "bizNo": "5208200591",
+    "residentNo": "6511071543613",
+    "corpRegNo": "1341710015297",
+    "contactName": "임일균",
+    "phone": "010-5767-7647",
+    "email": "stmlig@familidata.co.kr",
+    "hometaxId": "",
+    "hometaxPw": "",
+    "rep": "",
+    "staff": "김석주",
+    "fee": 165000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 43,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "(주)파밀리움",
+    "ceoName": "길미경",
+    "type": "법인",
+    "vatType": "과세",
+    "bizNo": "5108138171",
+    "residentNo": "6907172398417",
+    "corpRegNo": "",
+    "contactName": "임일균",
+    "phone": "010-5767-7647",
+    "email": "stmlig@familidata.co.kr",
+    "hometaxId": "gilmk69",
+    "hometaxPw": "fmd576712!",
+    "rep": "",
+    "staff": "김석주",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 44,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "토호디자인",
+    "ceoName": "서보건",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "7170602919",
+    "residentNo": "9108081079426",
+    "corpRegNo": "",
+    "contactName": "서보건",
+    "phone": "010-8670-5857",
+    "email": "",
+    "hometaxId": "bogunce",
+    "hometaxPw": "tjgurrjs12!",
+    "rep": "",
+    "staff": "김석주",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 45,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "알이즈웰디자인",
+    "ceoName": "신주환",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "8943400996",
+    "residentNo": "9103311051716",
+    "corpRegNo": "",
+    "contactName": "신주환",
+    "phone": "010-5195-5966",
+    "email": "",
+    "hometaxId": "nie5966",
+    "hometaxPw": "aszz675895!",
+    "rep": "",
+    "staff": "김석주",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 46,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "하만초디자인",
+    "ceoName": "조성준",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "3151962953",
+    "residentNo": "9706171019623",
+    "corpRegNo": "",
+    "contactName": "조성준",
+    "phone": "010-5346-3955",
+    "email": "",
+    "hometaxId": "csj9706",
+    "hometaxPw": "25908850a!",
+    "rep": "",
+    "staff": "김석주",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 47,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "그린홈시스",
+    "ceoName": "김상대",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "8387800326",
+    "residentNo": "9106281216614",
+    "corpRegNo": "",
+    "contactName": "김상대",
+    "phone": "010-4170-4413",
+    "email": "",
+    "hometaxId": "sangda1004",
+    "hometaxPw": "rmflsghatltm1!",
+    "rep": "",
+    "staff": "김석주",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 48,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "(주)그린홈시스",
+    "ceoName": "김상대",
+    "type": "법인",
+    "vatType": "과세",
+    "bizNo": "4188703801",
+    "residentNo": "9106281216614",
+    "corpRegNo": "1101110933471",
+    "contactName": "김상대",
+    "phone": "010-4170-4413",
+    "email": "",
+    "hometaxId": "greenhomesys",
+    "hometaxPw": "rmflsghatltm1!",
+    "rep": "",
+    "staff": "김석주",
+    "fee": 165000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 49,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "에이치엠컨설팅",
+    "ceoName": "김한민",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "4531301575",
+    "residentNo": "6612261037710",
+    "corpRegNo": "",
+    "contactName": "김한민",
+    "phone": "010-4783-8718",
+    "email": "",
+    "hometaxId": "",
+    "hometaxPw": "",
+    "rep": "",
+    "staff": "김석주",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 50,
+    "contractType": "신고대리",
+    "status": "정상",
+    "name": "달쥬과일상점 이천28호점",
+    "ceoName": "김호성",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "4034500646",
+    "residentNo": "9111121169415",
+    "corpRegNo": "",
+    "contactName": "김호성",
+    "phone": "",
+    "email": "",
+    "hometaxId": "",
+    "hometaxPw": "",
+    "rep": "",
+    "staff": "백승삼",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 51,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "혼밥대왕 용인모현점",
+    "ceoName": "최세진",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "3752901374",
+    "residentNo": "8402042237416",
+    "corpRegNo": "",
+    "contactName": "최세진",
+    "phone": "010-6314-8454",
+    "email": "",
+    "hometaxId": "sejin8454",
+    "hometaxPw": "darin0504!",
+    "rep": "",
+    "staff": "백승삼",
+    "fee": 88000,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  },
+  {
+    "id": 52,
+    "contractType": "기장",
+    "status": "정상",
+    "name": "밥에큐 용인모현점",
+    "ceoName": "최세진",
+    "type": "개인",
+    "vatType": "과세",
+    "bizNo": "1364201064",
+    "residentNo": "8402042237416",
+    "corpRegNo": "",
+    "contactName": "최세진",
+    "phone": "010-6314-8454",
+    "email": "",
+    "hometaxId": "sejin8454",
+    "hometaxPw": "darin0504!",
+    "rep": "",
+    "staff": "백승삼",
+    "fee": 0,
+    "vatFee": 0,
+    "corpFee": 0,
+    "source": "기존",
+    "startDate": "",
+    "note": "",
+    "deliveryAccounts": []
+  }
+];
+  localStorage.setItem('sw3_data_ver', String(DATA_VER));
   save();
 }
 
@@ -815,6 +2364,9 @@ const pageTitles = {
   allclients:'📋 전체 기장 현황',
   clients:'🏢 담당 업체 현황', worklog:'📝 일별 업무 로그',
   calendar:'📅 신고 기한 캘린더', checklist:'☑️ 신고 체크리스트', deadlines:'⚠️ 미처리 업무',
+  pipeline:'🚀 수임 파이프라인', dailyreport:'📢 일일 업무 보고',
+  kpi:'🎯 KPI 모니터링', finance:'💰 손익 현황',
+  aireview:'🤖 AI 검토 프롬프트',
   performance:'📊 직원별 성과', docs:'📁 문서 라이브러리', settings:'⚙️ 설정/연동',
 };
 function goTo(id) {
@@ -830,6 +2382,8 @@ function goTo(id) {
     allclients: () => renderAllClients(),
     clients: renderClients, worklog: renderLogs,
     calendar: renderCalendar, checklist: renderChecklist, deadlines: renderUndone,
+    pipeline: renderPipeline, dailyreport: renderDailyReport,
+    kpi: renderKPI, finance: renderFinance, aireview: renderAIReview,
     performance: renderPerformance, docs: renderDocs, settings: renderSettings,
   }[id];
   if (fn) fn();
@@ -1140,30 +2694,39 @@ function renderAllClients() {
 
   const wrap = document.getElementById('allclient-table-wrap');
 
+  const statusBadge = s => {
+    const m = {정상:'b-done',보류:'b-prog',해지:'b-todo',폐업예정:'b-todo',폐업:'b-todo'};
+    return `<span class="badge ${m[s]||'b-todo'}">${s}</span>`;
+  };
+
   if (tab === '기장') {
     wrap.innerHTML = `<table>
-      <thead><tr><th>NO</th><th>담당대표</th><th>담당직원</th><th>업체명</th><th>사업자번호</th><th>구분</th><th>기장료</th><th>부가세료</th><th>법인세료</th><th>수임경로</th><th>수임일</th><th>현황</th><th>관리</th></tr></thead>
+      <thead><tr><th>NO</th><th>담당대표</th><th>담당직원</th><th>업체명</th><th>대표자</th><th>연락처</th><th>구분</th><th>부가세</th><th>사업자번호</th><th>기장료</th><th>서류</th><th>현황</th><th>관리</th></tr></thead>
       <tbody>${rows.map((c, i) => {
         const color = getRepColor(c.rep);
+        const hasDA = (c.deliveryAccounts||[]).length > 0;
+        const docCnt = c.docStatus ? Object.values(c.docStatus).filter(Boolean).length : 0;
+        const docBg  = docCnt === DOC_ITEMS.length ? '#d1fae5' : docCnt > 0 ? '#fef3c7' : '#fee2e2';
+        const docClr = docCnt === DOC_ITEMS.length ? '#065f46' : docCnt > 0 ? '#92400e' : '#991b1b';
         return `<tr>
           <td style="text-align:center;">${i+1}</td>
           <td style="text-align:center;"><span style="background:${color};color:#fff;padding:2px 7px;border-radius:8px;font-size:11px;">${c.rep||'-'}</span></td>
           <td style="text-align:center;">${c.staff||'-'}</td>
-          <td><strong>${c.name}</strong></td>
-          <td style="text-align:center;font-size:11px;color:#6b7280;">${c.bizNo||'-'}</td>
+          <td><strong>${c.name}</strong>${hasDA?` <span style="font-size:10px;background:#fef3c7;color:#b45309;padding:1px 5px;border-radius:4px;">🛵배달</span>`:''}</td>
+          <td style="text-align:center;font-size:12px;">${c.ceoName||'-'}</td>
+          <td style="text-align:center;font-size:11.5px;">${c.phone||'-'}</td>
           <td style="text-align:center;"><span class="badge ${c.type==='법인'?'b-corp':'b-indiv'}">${c.type}</span></td>
-          <td style="text-align:right;">${Number(c.fee||0).toLocaleString()}원</td>
-          <td style="text-align:right;">${Number(c.vatFee||0).toLocaleString()}원</td>
-          <td style="text-align:right;">${Number(c.corpFee||0).toLocaleString()}원</td>
-          <td style="text-align:center;">${c.source||'-'}</td>
-          <td style="text-align:center;">${c.startDate||'-'}</td>
-          <td style="text-align:center;"><span class="badge ${c.status==='정상'?'b-done':c.status==='보류'?'b-prog':'b-todo'}">${c.status}</span></td>
+          <td style="text-align:center;"><span class="badge b-pend" style="font-size:10px;">${c.vatType||'과세'}</span></td>
+          <td style="text-align:center;font-size:11px;color:#6b7280;">${c.bizNo||'-'}</td>
+          <td style="text-align:right;font-weight:600;">${Number(c.fee||0).toLocaleString()}원</td>
+          <td style="text-align:center;cursor:pointer;" onclick="editClient(${c.id});setTimeout(()=>switchClientModalTab('doccheck'),100)"><span id="docbadge-${c.id}" style="padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;background:${docBg};color:${docClr};">${docCnt}/${DOC_ITEMS.length}</span></td>
+          <td style="text-align:center;">${statusBadge(c.status)}</td>
           <td style="text-align:center;white-space:nowrap;">
             <button class="btn btn-o btn-sm" onclick="editClient(${c.id})">수정</button>
             <button class="btn btn-d btn-sm" onclick="deleteClientAndRefresh(${c.id})">삭제</button>
           </td>
         </tr>`;
-      }).join('') || '<tr><td colspan="13" style="text-align:center;color:#9ca3af;padding:20px;">기장 업체가 없습니다</td></tr>'}</tbody>
+      }).join('') || '<tr><td colspan="12" style="text-align:center;color:#9ca3af;padding:20px;">기장 업체가 없습니다</td></tr>'}</tbody>
     </table>`;
     const totalRow = rows.reduce((s, c) => s + Number(c.fee||0), 0);
     document.getElementById('allclient-footer').textContent = `${rows.length}개 업체 | 기장료 합계: ${totalRow.toLocaleString()}원/월`;
@@ -1260,10 +2823,15 @@ function openAddClientModal(type) {
   document.getElementById('ct-bk').checked = type !== '신고대리';
   document.getElementById('ct-tf').checked = type === '신고대리';
   toggleContractFields();
-  ['modal-biz-name','modal-biz-no','modal-note','modal-filing-period'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  ['modal-biz-name','modal-biz-no','modal-ceo-name','modal-contact-name','modal-phone','modal-email',
+   'modal-resident-no','modal-corp-reg-no','modal-hometax-id','modal-hometax-pw','modal-note','modal-filing-period',
+   'modal-baemin1-id','modal-baemin1-pw','modal-baemin2-id','modal-baemin2-pw',
+   'modal-coupang-id','modal-coupang-pw','modal-yogiyo-id','modal-yogiyo-pw']
+   .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   ['modal-fee','modal-vat-fee','modal-corp-fee','modal-fee-single'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   document.getElementById('modal-status').value = '정상';
   document.getElementById('modal-start-date').value = new Date().toISOString().split('T')[0];
+  switchClientModalTab('basic');
   document.getElementById('modal-rep').innerHTML = getReps().map(r => `<option>${r.name}</option>`).join('');
   document.getElementById('modal-staff').innerHTML = db.staff.map(e => `<option>${e.name}</option>`).join('');
   document.getElementById('client-modal-title').textContent = type === '신고대리' ? '📑 신고대리 추가' : '🏢 기장 업체 추가';
@@ -1294,7 +2862,29 @@ function editClient(id) {
   }
   document.getElementById('modal-rep').innerHTML = getReps().map(r => `<option ${r.name===c.rep?'selected':''}>${r.name}</option>`).join('');
   document.getElementById('modal-staff').innerHTML = db.staff.map(e => `<option ${e.name===c.staff?'selected':''}>${e.name}</option>`).join('');
+  // 새 필드 로드
+  document.getElementById('modal-ceo-name').value = c.ceoName || '';
+  document.getElementById('modal-vat-type').value = c.vatType || '과세';
+  document.getElementById('modal-contact-name').value = c.contactName || '';
+  document.getElementById('modal-phone').value = c.phone || '';
+  document.getElementById('modal-email').value = c.email || '';
+  document.getElementById('modal-resident-no').value = c.residentNo || '';
+  document.getElementById('modal-corp-reg-no').value = c.corpRegNo || '';
+  document.getElementById('modal-hometax-id').value = c.hometaxId || '';
+  document.getElementById('modal-hometax-pw').value = c.hometaxPw || '';
+  // 배달 계정 로드
+  const da = c.deliveryAccounts || [];
+  const getDA = (p, idx) => da.filter(d => d.platform === p)[idx] || {};
+  document.getElementById('modal-baemin1-id').value = getDA('배민',0).id || '';
+  document.getElementById('modal-baemin1-pw').value = getDA('배민',0).pw || '';
+  document.getElementById('modal-baemin2-id').value = getDA('배민',1).id || '';
+  document.getElementById('modal-baemin2-pw').value = getDA('배민',1).pw || '';
+  document.getElementById('modal-coupang-id').value = getDA('쿠팡',0).id || '';
+  document.getElementById('modal-coupang-pw').value = getDA('쿠팡',0).pw || '';
+  document.getElementById('modal-yogiyo-id').value = getDA('요기요',0).id || '';
+  document.getElementById('modal-yogiyo-pw').value = getDA('요기요',0).pw || '';
   document.getElementById('client-modal-title').textContent = '🏢 업체 수정';
+  switchClientModalTab('basic');
   openModal('add-client-modal');
 }
 function saveClient() {
@@ -1311,8 +2901,23 @@ function saveClient() {
     startDate: document.getElementById('modal-start-date').value,
     status: document.getElementById('modal-status').value,
     note:  document.getElementById('modal-note').value,
+    ceoName:     document.getElementById('modal-ceo-name').value,
+    vatType:     document.getElementById('modal-vat-type').value,
+    contactName: document.getElementById('modal-contact-name').value,
+    phone:       document.getElementById('modal-phone').value,
+    email:       document.getElementById('modal-email').value,
+    residentNo:  document.getElementById('modal-resident-no').value,
+    corpRegNo:   document.getElementById('modal-corp-reg-no').value,
+    hometaxId:   document.getElementById('modal-hometax-id').value,
+    hometaxPw:   document.getElementById('modal-hometax-pw').value,
+    deliveryAccounts: [
+      { platform:'배민', id: document.getElementById('modal-baemin1-id').value, pw: document.getElementById('modal-baemin1-pw').value },
+      { platform:'배민', id: document.getElementById('modal-baemin2-id').value, pw: document.getElementById('modal-baemin2-pw').value },
+      { platform:'쿠팡', id: document.getElementById('modal-coupang-id').value, pw: document.getElementById('modal-coupang-pw').value },
+      { platform:'요기요', id: document.getElementById('modal-yogiyo-id').value, pw: document.getElementById('modal-yogiyo-pw').value },
+    ].filter(d => d.id),
   };
-  if (!data.name || !data.staff) { alert('업체명과 담당 직원을 입력하세요.'); return; }
+  if (!data.name) { alert('업체명을 입력하세요.'); return; }
   if (ct === '기장') {
     data.fee     = Number(document.getElementById('modal-fee').value) || 0;
     data.vatFee  = Number(document.getElementById('modal-vat-fee').value) || 0;
@@ -1328,6 +2933,26 @@ function saveClient() {
   save(); closeModal('add-client-modal');
   if (document.getElementById('section-allclients').classList.contains('active')) renderAllClients();
   else renderClients();
+}
+
+function switchClientModalTab(tab, el) {
+  ['basic','contact','account','doccheck'].forEach(t => {
+    const el2 = document.getElementById('cm-tab-'+t);
+    if (el2) el2.style.display = t === tab ? '' : 'none';
+  });
+  document.querySelectorAll('#add-client-modal .tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else {
+    const tabs = document.querySelectorAll('#add-client-modal .tab');
+    const idx = ['basic','contact','account','doccheck'].indexOf(tab);
+    if (tabs[idx]) tabs[idx].classList.add('active');
+  }
+  // 서류 징구 탭 열릴 때 체크리스트 로드
+  if (tab === 'doccheck') {
+    const clientId = Number(document.getElementById('edit-client-id')?.value || 0);
+    const listEl = document.getElementById('cm-docstatus-list');
+    if (listEl) listEl.innerHTML = clientId ? renderDocStatus(clientId) : DOC_ITEMS.map((doc,i)=>`<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12.5px;color:#9ca3af;"><input type="checkbox" disabled style="width:15px;height:15px;"> ${doc} <span style="margin-left:auto;font-size:10px;">저장 후 체크 가능</span></label>`).join('');
+  }
 }
 
 // ── 6. 업무 로그 ──
@@ -1740,6 +3365,498 @@ function openDocFile(filename) {
 }
 
 // ── 11. 설정 ──
+// ════════════════════════════════════════════════════
+// ① 수임 파이프라인
+// ════════════════════════════════════════════════════
+const PIPELINE_STAGES = [
+  { id:'lead',     label:'📞 리드 접수',    color:'#e0f2fe', border:'#38bdf8' },
+  { id:'consult',  label:'💬 상담 진행',    color:'#fef3c7', border:'#f59e0b' },
+  { id:'contract', label:'✍️ 계약 완료',    color:'#dcfce7', border:'#22c55e' },
+  { id:'docs',     label:'📄 서류 징구',    color:'#ede9fe', border:'#7c3aed' },
+  { id:'dozon',    label:'💻 더존 등록',    color:'#ffedd5', border:'#f97316' },
+  { id:'started',  label:'🚀 기장 시작',    color:'#d1fae5', border:'#059669' },
+];
+const DOC_ITEMS = ['기장계약서','홈택스 수임동의서','스크래핑 동의서','사업자등록증','통장 사본','법인 인감 서류'];
+
+function renderPipeline() {
+  const board = document.getElementById('pipeline-board');
+  board.innerHTML = PIPELINE_STAGES.map(st => {
+    const cards = db.leads.filter(l => l.stage === st.id);
+    return `<div style="min-width:190px;max-width:200px;flex-shrink:0;">
+      <div style="background:${st.border};color:#fff;padding:8px 12px;border-radius:8px 8px 0 0;font-size:12.5px;font-weight:700;">${st.label} <span style="background:rgba(255,255,255,.3);border-radius:10px;padding:1px 7px;">${cards.length}</span></div>
+      <div style="background:#f8fafc;border:1.5px solid ${st.border};border-top:none;border-radius:0 0 8px 8px;min-height:200px;padding:8px;display:flex;flex-direction:column;gap:7px;" ondragover="event.preventDefault()" ondrop="dropLead(event,'${st.id}')">
+        ${cards.map(l => `
+          <div draggable="true" ondragstart="dragLead(event,${l.id})" style="background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:9px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+            <div style="font-size:12.5px;font-weight:700;color:var(--navy);">${l.name}</div>
+            <div style="font-size:10.5px;color:#6b7280;margin-top:2px;">${l.bizType||''} · ${l.phone||''}</div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">${l.date}</div>
+            <div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;">
+              ${PIPELINE_STAGES.filter(s=>s.id!==st.id).map(s=>`<button onclick="moveLead(${l.id},'${s.id}')" style="font-size:9.5px;padding:2px 6px;border:1px solid ${s.border};color:${s.border};background:#fff;border-radius:4px;cursor:pointer;" title="${s.label}">${s.label.split(' ')[0]}</button>`).join('')}
+              <button onclick="deleteLead(${l.id})" style="font-size:9.5px;padding:2px 6px;border:1px solid #ef4444;color:#ef4444;background:#fff;border-radius:4px;cursor:pointer;">🗑</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+let _dragLeadId = null;
+function dragLead(e, id) { _dragLeadId = id; }
+function dropLead(e, stageId) { if (_dragLeadId) { moveLead(_dragLeadId, stageId); _dragLeadId = null; } }
+function moveLead(id, stageId) {
+  const l = db.leads.find(x => x.id === id); if (!l) return;
+  l.stage = stageId;
+  if (stageId === 'started') {
+    if (confirm(`"${l.name}" 기장 시작 완료! 업체 관리에 자동 등록하시겠습니까?`)) {
+      if (!db.clients.find(c => c.name === l.name)) {
+        const newId = Math.max(0, ...db.clients.map(c=>c.id)) + 1;
+        db.clients.push({ id:newId, name:l.name, ceoName:l.ceoName||'', type:l.corpType||'개인', contractType:'기장', status:'정상', vatType:'과세', staff:'', rep:'', fee:l.fee||0, vatFee:0, corpFee:0, phone:l.phone||'', email:'', source:'광고', startDate:new Date().toISOString().slice(0,10), note:'', docStatus:{}, deliveryAccounts:[] });
+      }
+    }
+  }
+  save(); renderPipeline();
+}
+function deleteLead(id) {
+  if (!confirm('이 리드를 삭제하시겠습니까?')) return;
+  db.leads = db.leads.filter(l => l.id !== id); save(); renderPipeline();
+}
+function openLeadModal() {
+  const today = new Date().toISOString().slice(0,10);
+  const html = `<div style="display:flex;flex-direction:column;gap:10px;padding:4px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><label style="font-size:11.5px;font-weight:600;">업체명 *</label><input id="nl-name" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="(주)홍길동"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">대표자명</label><input id="nl-ceo" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="홍길동"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">연락처</label><input id="nl-phone" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="010-0000-0000"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">업종/업태</label><input id="nl-biz" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="도소매/음식점"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">법인/개인</label>
+        <select id="nl-corp" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;">
+          <option>개인</option><option>법인</option>
+        </select>
+      </div>
+      <div><label style="font-size:11.5px;font-weight:600;">예상 기장료</label><input id="nl-fee" type="number" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;" placeholder="150000"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">접수일</label><input id="nl-date" type="date" value="${today}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;box-sizing:border-box;"></div>
+      <div><label style="font-size:11.5px;font-weight:600;">현재 단계</label>
+        <select id="nl-stage" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12.5px;">
+          ${PIPELINE_STAGES.map(s=>`<option value="${s.id}">${s.label}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div><label style="font-size:11.5px;font-weight:600;">메모</label><textarea id="nl-note" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px;height:55px;resize:none;box-sizing:border-box;"></textarea></div>
+    <div style="text-align:right;"><button class="btn btn-p" onclick="saveLead()">등록</button></div>
+  </div>`;
+  document.getElementById('generic-modal-title').textContent = '🚀 신규 리드 등록';
+  document.getElementById('generic-modal-body').innerHTML = html;
+  document.getElementById('generic-modal').style.display = 'flex';
+}
+function saveLead() {
+  const name = document.getElementById('nl-name').value.trim();
+  if (!name) { alert('업체명을 입력하세요.'); return; }
+  db.leads.push({ id: Date.now(), name, ceoName: document.getElementById('nl-ceo').value.trim(), phone: document.getElementById('nl-phone').value.trim(), bizType: document.getElementById('nl-biz').value.trim(), corpType: document.getElementById('nl-corp').value, fee: Number(document.getElementById('nl-fee').value||0), date: document.getElementById('nl-date').value, stage: document.getElementById('nl-stage').value, note: document.getElementById('nl-note').value.trim() });
+  save(); closeModal('generic-modal'); renderPipeline();
+}
+
+// ════════════════════════════════════════════════════
+// ② 서류 징구 체크리스트 (업체 모달에 연동)
+// ════════════════════════════════════════════════════
+function renderDocStatus(clientId) {
+  const c = db.clients.find(x => x.id === clientId); if (!c) return '';
+  if (!c.docStatus) c.docStatus = {};
+  return DOC_ITEMS.map((doc, i) => {
+    const key = 'doc_' + i;
+    const checked = !!c.docStatus[key];
+    return `<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:${checked?'#d1fae5':'#f8fafc'};border:1px solid ${checked?'#6ee7b7':'#e2e8f0'};cursor:pointer;font-size:12.5px;">
+      <input type="checkbox" ${checked?'checked':''} onchange="toggleDocStatus(${clientId},'${key}',this.checked)" style="width:15px;height:15px;">
+      <span style="${checked?'text-decoration:line-through;color:#6b7280;':'color:var(--navy);'}">${doc}</span>
+      ${checked ? '<span style="margin-left:auto;font-size:10px;color:#059669;font-weight:700;">✅ 수령</span>' : '<span style="margin-left:auto;font-size:10px;color:#ef4444;font-weight:700;">⏳ 미수령</span>'}
+    </label>`;
+  }).join('');
+}
+function toggleDocStatus(clientId, key, val) {
+  const c = db.clients.find(x => x.id === clientId); if (!c) return;
+  if (!c.docStatus) c.docStatus = {};
+  c.docStatus[key] = val;
+  save();
+  // 전체 기장 현황의 서류 아이콘 업데이트
+  const badge = document.getElementById('docbadge-' + clientId);
+  if (badge) {
+    const cnt = Object.values(c.docStatus).filter(Boolean).length;
+    badge.textContent = cnt + '/' + DOC_ITEMS.length;
+    badge.style.background = cnt === DOC_ITEMS.length ? '#d1fae5' : cnt > 0 ? '#fef3c7' : '#fee2e2';
+    badge.style.color = cnt === DOC_ITEMS.length ? '#065f46' : cnt > 0 ? '#92400e' : '#991b1b';
+  }
+}
+
+// ════════════════════════════════════════════════════
+// ③ 일일 업무 보고
+// ════════════════════════════════════════════════════
+function renderDailyReport() {
+  const today = new Date().toISOString().slice(0,10);
+  const dateEl = document.getElementById('dr-date'); if (dateEl && !dateEl.value) dateEl.value = today;
+  // 직원 필터 셀렉트 갱신
+  const sel = document.getElementById('dr-filter-staff');
+  if (sel) { sel.innerHTML = '<option value="">전체 직원</option>' + getEmps().map(e=>`<option value="${e.name}">${e.name}</option>`).join(''); }
+  // dr-type 변경에 따라 필드 토글
+  const drType = document.getElementById('dr-type');
+  if (drType) {
+    drType.onchange = () => {
+      const isStart = drType.value === 'start';
+      document.getElementById('dr-start-fields').style.display = isStart ? '' : 'none';
+      document.getElementById('dr-end-fields').style.display   = isStart ? 'none' : '';
+    };
+  }
+  // 오늘 보고 현황
+  const todayReps = db.dailyReports.filter(r => r.date === today);
+  const allEmps = getEmps();
+  const statEl = document.getElementById('dr-today-status');
+  if (statEl) {
+    const summaryEl = document.getElementById('dr-today-summary');
+    if (summaryEl) summaryEl.textContent = `(${today} 기준 ${todayReps.length}건)`;
+    statEl.innerHTML = allEmps.length === 0 ? '<p style="color:#9ca3af;font-size:12px;">등록된 직원이 없습니다.</p>' :
+      allEmps.map(e => {
+        const start = todayReps.find(r => r.staff === e.name && r.type === 'start');
+        const end   = todayReps.find(r => r.staff === e.name && r.type === 'end');
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:12.5px;">
+          <strong>${e.name}</strong>
+          <div style="display:flex;gap:8px;">
+            <span style="padding:3px 10px;border-radius:8px;font-size:11px;background:${start?'#d1fae5':'#fee2e2'};color:${start?'#065f46':'#991b1b'};">${start?'✅ 시작':'❌ 시작미제출'}</span>
+            <span style="padding:3px 10px;border-radius:8px;font-size:11px;background:${end?'#dbeafe':'#f1f5f9'};color:${end?'#1e40af':'#6b7280'};">${end?'✅ 종료':'- 종료대기'}</span>
+          </div>
+        </div>`;
+      }).join('');
+  }
+  // 보고 이력
+  let reports = [...db.dailyReports].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+  const filterStaff = document.getElementById('dr-filter-staff')?.value;
+  const filterDate  = document.getElementById('dr-filter-date')?.value;
+  if (filterStaff) reports = reports.filter(r => r.staff === filterStaff);
+  if (filterDate)  reports = reports.filter(r => r.date === filterDate);
+  const histEl = document.getElementById('dr-history');
+  if (histEl) histEl.innerHTML = reports.length === 0 ? '<p style="color:#9ca3af;font-size:12px;text-align:center;padding:20px;">보고 이력이 없습니다.</p>' :
+    reports.slice(0, 30).map(r => {
+      const isStart = r.type === 'start';
+      const borderColor = isStart ? '#f59e0b' : '#3b82f6';
+      const bg = isStart ? '#fffbeb' : '#eff6ff';
+      const rows = isStart
+        ? [['처리 예정',r.todayPlan],['전날 미완',r.pending],['도움 필요',r.help]]
+        : [['처리 완료',r.done],['처리 못한 항목',r.undone],['내일 예정',r.tomorrow]];
+      return `<div style="border-left:3px solid ${borderColor};background:${bg};border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div><strong style="font-size:13px;">${r.staff}</strong> <span style="font-size:11px;padding:2px 8px;border-radius:8px;background:${borderColor};color:#fff;">${isStart?'🌅 시작보고':'🌆 종료보고'}</span></div>
+          <div style="font-size:11px;color:#6b7280;">${r.date} ${r.time||''}</div>
+        </div>
+        ${rows.map(([lbl,val])=>`<div style="font-size:12px;margin-bottom:5px;"><span style="font-weight:600;color:#374151;">${lbl}:</span> <span style="color:#6b7280;white-space:pre-wrap;">${val||'-'}</span></div>`).join('')}
+      </div>`;
+    }).join('');
+}
+function submitDailyReport() {
+  if (!currentUser) { alert('로그인이 필요합니다.'); return; }
+  const type = document.getElementById('dr-type').value;
+  const date = document.getElementById('dr-date').value;
+  const now  = new Date().toTimeString().slice(0,5);
+  let report = { id: Date.now(), staff: currentUser.name, type, date, time: now, createdAt: new Date().toISOString() };
+  if (type === 'start') {
+    report.todayPlan = document.getElementById('dr-today-plan').value.trim();
+    report.pending   = document.getElementById('dr-pending').value.trim();
+    report.help      = document.getElementById('dr-help').value.trim();
+    if (!report.todayPlan) { alert('처리 예정 업무를 입력해주세요.'); return; }
+  } else {
+    report.done    = document.getElementById('dr-done').value.trim();
+    report.undone  = document.getElementById('dr-undone').value.trim();
+    report.tomorrow= document.getElementById('dr-tomorrow').value.trim();
+    if (!report.done) { alert('처리 완료 내용을 입력해주세요.'); return; }
+  }
+  db.dailyReports.push(report);
+  save();
+  alert(`${type==='start'?'시작':'종료'} 보고가 제출되었습니다.`);
+  ['dr-today-plan','dr-pending','dr-help','dr-done','dr-undone','dr-tomorrow'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  renderDailyReport();
+}
+
+// ════════════════════════════════════════════════════
+// ④ KPI 모니터링
+// ════════════════════════════════════════════════════
+const KPI_TARGETS = [
+  { key:'completeRate', label:'처리 완료율',       target:100, unit:'%',  desc:'담당 업체 기준 완료 비율' },
+  { key:'deadlineRate', label:'신고 기한 준수율',   target:100, unit:'%',  desc:'기한 내 신고 완료 비율' },
+  { key:'errorCount',   label:'오류/재작업 건수',   target:3,   unit:'건 이하', desc:'월 3건 이하 목표', inverse:true },
+  { key:'complaintCount',label:'고객 민원 건수',    target:1,   unit:'건 이하', desc:'월 1건 이하 목표', inverse:true },
+  { key:'aiAccuracy',   label:'AI 검토 수정 비율',  target:20,  unit:'%',  desc:'낮을수록 AI 정확도 향상', inverse:true },
+];
+function renderKPI() {
+  const monthEl = document.getElementById('kpi-month');
+  if (monthEl && !monthEl.value) monthEl.value = new Date().toISOString().slice(0,7);
+  const month = document.getElementById('kpi-month')?.value || new Date().toISOString().slice(0,7);
+  const monthData = db.kpiLogs.filter(k => k.month === month);
+
+  // 전체 평균 stat
+  const statEl = document.getElementById('kpi-stat-grid');
+  if (statEl) statEl.innerHTML = KPI_TARGETS.map(kpi => {
+    const vals = monthData.map(d => Number(d[kpi.key]||0)).filter(v => !isNaN(v));
+    const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '-';
+    const ok = avg !== '-' && (kpi.inverse ? Number(avg) <= kpi.target : Number(avg) >= kpi.target);
+    return `<div class="stat-card ${ok?'g':'r'}"><div class="lbl">${kpi.label}</div><div class="val">${avg}<span style="font-size:13px;">${avg!=='-'?kpi.unit:''}</span></div><div class="sub">목표: ${kpi.target}${kpi.unit}</div></div>`;
+  }).join('');
+
+  // KPI 기준표
+  const tableEl = document.getElementById('kpi-table-body');
+  if (tableEl) tableEl.innerHTML = KPI_TARGETS.map(kpi => {
+    const vals = monthData.map(d => Number(d[kpi.key]||0)).filter(v => !isNaN(v));
+    const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '-';
+    const ok = avg !== '-' && (kpi.inverse ? Number(avg) <= kpi.target : Number(avg) >= kpi.target);
+    return `<tr style="border-bottom:1px solid #f1f5f9;">
+      <td style="padding:8px 10px;font-size:12px;">${kpi.label}</td>
+      <td style="padding:8px 10px;text-align:center;font-size:12px;">${kpi.target}${kpi.unit}</td>
+      <td style="padding:8px 10px;text-align:center;"><span style="padding:3px 10px;border-radius:8px;font-size:11.5px;background:${ok?'#d1fae5':avg==='-'?'#f1f5f9':'#fee2e2'};color:${ok?'#065f46':avg==='-'?'#6b7280':'#991b1b'};">${avg !== '-' ? avg+kpi.unit : '미입력'}</span></td>
+    </tr>`;
+  }).join('');
+
+  // 직원별 차트
+  const emps = getEmps();
+  const rates = emps.map(e => {
+    const d = monthData.find(k => k.staff === e.name);
+    return d ? Number(d.completeRate||0) : 0;
+  });
+  const ctx = document.getElementById('kpiChart');
+  if (ctx) {
+    if (ctx._chart) ctx._chart.destroy();
+    ctx._chart = new Chart(ctx, { type:'bar', data:{ labels: emps.map(e=>e.name), datasets:[{ label:'처리 완료율(%)', data:rates, backgroundColor:rates.map(r=>r>=100?'rgba(34,197,94,.7)':'rgba(239,68,68,.6)'), borderRadius:5 }] }, options:{ responsive:true, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true,max:105,ticks:{callback:v=>v+'%'}} } } });
+  }
+
+  // 월별 추이 테이블
+  const allMonths = [...new Set(db.kpiLogs.map(k=>k.month))].sort().slice(-6);
+  const detailEl = document.getElementById('kpi-detail-table');
+  if (detailEl) {
+    if (allMonths.length === 0) { detailEl.innerHTML = '<p style="color:#9ca3af;font-size:12px;text-align:center;padding:20px;">아직 입력된 KPI 데이터가 없습니다.<br>우측 상단 "+ KPI 실적 입력"으로 데이터를 추가하세요.</p>'; return; }
+    detailEl.innerHTML = `<table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="background:#f8fafc;"><th style="padding:7px 10px;text-align:left;border-bottom:1px solid #e2e8f0;">직원</th>${allMonths.map(m=>`<th style="padding:7px 10px;text-align:center;border-bottom:1px solid #e2e8f0;">${m}</th>`).join('')}</tr></thead><tbody>${
+      getEmps().map(e => `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:8px 10px;font-weight:600;">${e.name}</td>${allMonths.map(m => { const d = db.kpiLogs.find(k=>k.month===m&&k.staff===e.name); const v = d?Number(d.completeRate||0):null; return `<td style="padding:8px 10px;text-align:center;"><span style="padding:2px 8px;border-radius:6px;background:${v===null?'#f1f5f9':v>=100?'#d1fae5':'#fef3c7'};color:${v===null?'#9ca3af':v>=100?'#065f46':'#92400e'};">${v===null?'-':v+'%'}</span></td>`; }).join('')}</tr>`).join('')
+    }</tbody></table>`;
+  }
+}
+function openKPIInputModal() {
+  const month = document.getElementById('kpi-month')?.value || new Date().toISOString().slice(0,7);
+  const emps = getEmps();
+  const html = `<div style="font-size:12px;color:#6b7280;margin-bottom:12px;">기준 월: <strong>${month}</strong> · 직원별 KPI 실적을 입력하세요.</div>
+  ${emps.map(e => {
+    const existing = db.kpiLogs.find(k=>k.month===month&&k.staff===e.name) || {};
+    return `<div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px;background:#f8fafc;">
+      <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:8px;">👤 ${e.name}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        ${KPI_TARGETS.map(kpi=>`<div><label style="font-size:11px;color:#6b7280;">${kpi.label} (${kpi.unit})</label><input type="number" id="kpi-${e.name}-${kpi.key}" value="${existing[kpi.key]||''}" placeholder="${kpi.target}" style="width:100%;padding:6px;border:1px solid #e2e8f0;border-radius:5px;font-size:12.5px;box-sizing:border-box;margin-top:2px;"></div>`).join('')}
+      </div>
+    </div>`;
+  }).join('')}
+  <div style="text-align:right;"><button class="btn btn-p" onclick="saveKPIData('${month}')">저장</button></div>`;
+  document.getElementById('generic-modal-title').textContent = '🎯 KPI 실적 입력';
+  document.getElementById('generic-modal-body').innerHTML = html;
+  document.getElementById('generic-modal').style.display = 'flex';
+}
+function saveKPIData(month) {
+  getEmps().forEach(e => {
+    let existing = db.kpiLogs.find(k=>k.month===month&&k.staff===e.name);
+    if (!existing) { existing = { id:Date.now()+Math.random(), month, staff:e.name }; db.kpiLogs.push(existing); }
+    KPI_TARGETS.forEach(kpi => {
+      const val = document.getElementById(`kpi-${e.name}-${kpi.key}`)?.value;
+      if (val !== '') existing[kpi.key] = Number(val);
+    });
+  });
+  save(); closeModal('generic-modal'); renderKPI();
+  alert('KPI 데이터가 저장되었습니다.');
+}
+
+// ════════════════════════════════════════════════════
+// ⑤ 손익 현황
+// ════════════════════════════════════════════════════
+const FIN_PLAN = [
+  { month:'2026-04', targetClients:130, revenue:11440000, acquisitionCost:16000000 },
+  { month:'2026-05', targetClients:210, revenue:18480000, acquisitionCost:32000000 },
+  { month:'2026-06', targetClients:310, revenue:27280000, acquisitionCost:52000000 },
+  { month:'2026-07', targetClients:410, revenue:36080000, acquisitionCost:56000000 },
+  { month:'2026-08', targetClients:510, revenue:44880000, acquisitionCost:76000000 },
+  { month:'2026-09', targetClients:550, revenue:48400000, acquisitionCost:64000000 },
+  { month:'2026-10', targetClients:550, revenue:48400000, acquisitionCost:48000000 },
+  { month:'2026-11', targetClients:550, revenue:48400000, acquisitionCost:28000000 },
+];
+function renderFinance() {
+  // 현재 실제 기장 업체 수 & 기장료
+  const activeClients = db.clients.filter(c => c.contractType === '기장' && c.status === '정상');
+  const actualRevenue  = activeClients.reduce((s,c) => s+(Number(c.fee)||0), 0);
+  const curMonth = new Date().toISOString().slice(0,7);
+  const plan = FIN_PLAN.find(p => p.month === curMonth) || FIN_PLAN[0];
+  const revProgress = plan ? Math.round(actualRevenue / plan.revenue * 100) : 0;
+  const clientProgress = plan ? Math.round(activeClients.length / plan.targetClients * 100) : 0;
+
+  // 지출 데이터 (수동 입력)
+  const expenses = db.kpiLogs.filter(k => k.type === 'expense');
+  const actualExpense = expenses.find(e => e.month === curMonth)?.amount || 0;
+  const netProfit = actualRevenue - actualExpense;
+
+  const statEl = document.getElementById('fin-stat-grid');
+  if (statEl) statEl.innerHTML = `
+    <div class="stat-card"><div class="lbl">현재 기장 업체</div><div class="val">${activeClients.length}<span style="font-size:13px;">곳</span></div><div class="sub">목표: ${plan?.targetClients||'-'}곳 (${clientProgress}%)</div></div>
+    <div class="stat-card g"><div class="lbl">이번 달 기장료 수익</div><div class="val" style="font-size:18px;">${(actualRevenue/10000).toFixed(0)}<span style="font-size:13px;">만원</span></div><div class="sub">목표: ${plan?(plan.revenue/10000).toFixed(0):'--'}만원 (${revProgress}%)</div></div>
+    <div class="stat-card ${actualExpense>0?'r':''}"><div class="lbl">이번 달 수임비 지출</div><div class="val" style="font-size:18px;">${(actualExpense/10000).toFixed(0)}<span style="font-size:13px;">만원</span></div><div class="sub">계획: ${plan?(plan.acquisitionCost/10000).toFixed(0):'--'}만원</div></div>
+    <div class="stat-card ${netProfit>=0?'g':'r'}"><div class="lbl">순손익</div><div class="val" style="font-size:18px;">${netProfit>=0?'+':''}${(netProfit/10000).toFixed(0)}<span style="font-size:13px;">만원</span></div><div class="sub">${netProfit>=0?'흑자':'⚠️ 적자 구간'}</div></div>
+    <div class="stat-card y"><div class="lbl">흑자 전환 예상</div><div class="val" style="font-size:14px;">2026-10</div><div class="sub">기획 기준</div></div>
+  `;
+
+  // 차트
+  const months = FIN_PLAN.map(p => p.month.slice(5)+'월');
+  const actRevenues = FIN_PLAN.map(p => {
+    const exp = expenses.find(e=>e.month===p.month);
+    return exp?.actualRevenue || (p.month===curMonth ? actualRevenue : null);
+  });
+  const ctx = document.getElementById('finChart');
+  if (ctx) {
+    if (ctx._chart) ctx._chart.destroy();
+    ctx._chart = new Chart(ctx, { type:'bar',
+      data:{ labels:months, datasets:[
+        { type:'line', label:'계획 기장료', data:FIN_PLAN.map(p=>p.revenue/10000), borderColor:'#22c55e', borderWidth:2, pointRadius:4, fill:false, tension:.3 },
+        { type:'line', label:'계획 수임비', data:FIN_PLAN.map(p=>p.acquisitionCost/10000), borderColor:'#ef4444', borderWidth:2, pointRadius:4, fill:false, tension:.3, borderDash:[5,3] },
+        { label:'실제 기장료', data:actRevenues.map(v=>v?v/10000:null), backgroundColor:'rgba(34,197,94,.4)', borderRadius:4 },
+      ]},
+      options:{ responsive:true, plugins:{ legend:{ position:'top', labels:{font:{size:11}} } }, scales:{ y:{ beginAtZero:true, ticks:{ callback:v=>v+'만' } } } }
+    });
+  }
+
+  // 목표 대비 현황 테이블
+  const targetEl = document.getElementById('fin-target-table');
+  if (targetEl) targetEl.innerHTML = `<table style="width:100%;font-size:12px;border-collapse:collapse;">
+    <thead><tr style="background:#f8fafc;"><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:left;">월</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">목표 업체</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">계획 수익</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">계획 수임비</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:center;">계획 손익</th></tr></thead>
+    <tbody>${FIN_PLAN.map(p=>{const net=p.revenue-p.acquisitionCost;const isCur=p.month===curMonth;return `<tr style="border-bottom:1px solid #f1f5f9;${isCur?'background:#eff6ff;font-weight:700;':''}"><td style="padding:7px;">${p.month.slice(5)}월${isCur?' 📍':''}</td><td style="padding:7px;text-align:center;">${p.targetClients}곳</td><td style="padding:7px;text-align:center;color:#059669;">${(p.revenue/10000).toFixed(0)}만</td><td style="padding:7px;text-align:center;color:#ef4444;">${(p.acquisitionCost/10000).toFixed(0)}만</td><td style="padding:7px;text-align:center;${net>=0?'color:#059669;':'color:#ef4444;'}">${net>=0?'+':''}${(net/10000).toFixed(0)}만</td></tr>`}).join('')}</tbody>
+  </table>`;
+
+  // 지출 입력 테이블
+  const expEl = document.getElementById('fin-expense-table');
+  if (expEl) {
+    const expData = db.kpiLogs.filter(k=>k.type==='expense').sort((a,b)=>b.month.localeCompare(a.month));
+    expEl.innerHTML = expData.length === 0 ? '<p style="color:#9ca3af;font-size:12px;text-align:center;padding:20px;">아직 입력된 지출 데이터가 없습니다.</p>' :
+      `<table style="width:100%;font-size:12px;border-collapse:collapse;"><thead><tr style="background:#f8fafc;"><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:left;">월</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:right;">수임비 지출</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:right;">기장료 실적</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;text-align:right;">실제 손익</th><th style="padding:7px;border-bottom:1px solid #e2e8f0;">메모</th></tr></thead><tbody>${
+        expData.map(e=>{const net=(e.actualRevenue||0)-e.amount;return `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:7px;">${e.month}</td><td style="padding:7px;text-align:right;color:#ef4444;">${(e.amount/10000).toFixed(0)}만</td><td style="padding:7px;text-align:right;color:#059669;">${e.actualRevenue?(e.actualRevenue/10000).toFixed(0)+'만':'-'}</td><td style="padding:7px;text-align:right;${net>=0?'color:#059669;':'color:#ef4444;'}">${e.actualRevenue?(net>=0?'+':'')+(net/10000).toFixed(0)+'만':'-'}</td><td style="padding:7px;color:#6b7280;">${e.note||''}</td></tr>`;}).join('')
+      }</tbody></table>`;
+  }
+}
+function openFinInputModal() {
+  const curMonth = new Date().toISOString().slice(0,7);
+  const existing = db.kpiLogs.find(k=>k.type==='expense'&&k.month===curMonth)||{};
+  const html = `<div style="display:flex;flex-direction:column;gap:10px;">
+    <div><label style="font-size:12px;font-weight:600;">기준 월</label><input type="month" id="fin-month" value="${existing.month||curMonth}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:3px;"></div>
+    <div><label style="font-size:12px;font-weight:600;">수임비 지출액 (원)</label><input type="number" id="fin-amount" value="${existing.amount||''}" placeholder="예: 16000000" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:3px;"></div>
+    <div><label style="font-size:12px;font-weight:600;">기장료 실제 수입 (원)</label><input type="number" id="fin-rev" value="${existing.actualRevenue||''}" placeholder="예: 11440000" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:3px;"></div>
+    <div><label style="font-size:12px;font-weight:600;">메모</label><input id="fin-note" value="${existing.note||''}" style="width:100%;padding:7px;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:3px;" placeholder="특이사항 입력"></div>
+    <div style="text-align:right;"><button class="btn btn-p" onclick="saveFinExpense()">저장</button></div>
+  </div>`;
+  document.getElementById('generic-modal-title').textContent = '💸 손익 데이터 입력';
+  document.getElementById('generic-modal-body').innerHTML = html;
+  document.getElementById('generic-modal').style.display = 'flex';
+}
+function saveFinExpense() {
+  const month  = document.getElementById('fin-month').value;
+  const amount = Number(document.getElementById('fin-amount').value||0);
+  const rev    = Number(document.getElementById('fin-rev').value||0);
+  const note   = document.getElementById('fin-note').value.trim();
+  if (!month || !amount) { alert('월과 지출액을 입력하세요.'); return; }
+  let existing = db.kpiLogs.find(k=>k.type==='expense'&&k.month===month);
+  if (existing) { existing.amount=amount; existing.actualRevenue=rev; existing.note=note; }
+  else db.kpiLogs.push({ id:Date.now(), type:'expense', month, amount, actualRevenue:rev, note });
+  save(); closeModal('generic-modal'); renderFinance();
+}
+
+// ════════════════════════════════════════════════════
+// ⑥ AI 검토 프롬프트 생성기
+// ════════════════════════════════════════════════════
+const AI_GUIDE_ITEMS = [
+  { icon:'⚠️', title:'계정과목 오류', desc:'더존이 잘못 분류한 항목 식별 (복리후생 vs 접대비 혼동 등)' },
+  { icon:'📈', title:'비용 이상 패턴', desc:'전월 대비 급변 항목 감지 (임차료 200만→500만 등)' },
+  { icon:'🎰', title:'접대비 한도', desc:'골프장·유흥업소 거래 감지, 한도 초과 위험 경보' },
+  { icon:'💸', title:'가지급금 위험', desc:'대표이사 현금 출금, 개인성 지출 혼입 가능성 탐지' },
+  { icon:'📑', title:'세금계산서 누락', desc:'매입 세금계산서 수취 급감 → 자료 누락 가능성 알림' },
+  { icon:'🏷️', title:'업체 특이사항 적용', desc:'업체 카드 등록 특이사항 기준 맞춤 검토' },
+];
+function renderAIReview() {
+  // 업체 셀렉트 채우기
+  const sel = document.getElementById('ai-client-sel');
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">-- 업체를 선택하세요 --</option>' +
+      db.clients.filter(c=>c.status==='정상').sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${c.name}${c.type==='법인'?' (법인)':' (개인)'}</option>`).join('');
+    if (cur) sel.value = cur;
+  }
+  // 기준 월 기본값
+  const monthEl = document.getElementById('ai-month');
+  if (monthEl && !monthEl.value) monthEl.value = new Date().toISOString().slice(0,7);
+  // 가이드 그리드
+  const guideEl = document.getElementById('ai-guide-grid');
+  if (guideEl) guideEl.innerHTML = AI_GUIDE_ITEMS.map(g=>`
+    <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:12px;">
+      <div style="font-size:20px;margin-bottom:6px;">${g.icon}</div>
+      <div style="font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:4px;">${g.title}</div>
+      <div style="font-size:11.5px;color:#6b7280;">${g.desc}</div>
+    </div>`).join('');
+  generateAIPrompt();
+}
+function generateAIPrompt() {
+  const selEl  = document.getElementById('ai-client-sel');
+  const monthEl = document.getElementById('ai-month');
+  const extraEl = document.getElementById('ai-extra');
+  const outEl   = document.getElementById('ai-prompt-output');
+  const copyBtn = document.getElementById('ai-copy-btn');
+  if (!selEl || !monthEl || !outEl) return;
+  const clientId = Number(selEl.value);
+  const month    = monthEl.value;
+  if (!clientId || !month) {
+    outEl.value = '업체와 기준 월을 선택하면 프롬프트가 자동 생성됩니다.';
+    if (copyBtn) copyBtn.disabled = true;
+    return;
+  }
+  const c = db.clients.find(x => x.id === clientId);
+  if (!c) return;
+  const extra = extraEl?.value.trim();
+  const docCnt = c.docStatus ? Object.values(c.docStatus).filter(Boolean).length : 0;
+  const yr = month.slice(0,4), mo = month.slice(5,7);
+
+  let prompt = `아래는 세무법인 서월 기장 업체의 기본 정보입니다. 이 정보를 기반으로 첨부한 ${yr}년 ${mo}월 전표 엑셀 파일을 검토해주세요.
+
+═══ 업체 기본 정보 ═══
+• 업체명: ${c.name}
+• 업종/구분: ${c.type} · ${c.vatType||'과세'}
+• 대표자: ${c.ceoName||'정보 없음'}
+• 담당 직원: ${c.staff||'미배정'}
+• 검토 기준월: ${yr}년 ${mo}월
+
+═══ 특이사항 (중점 검토 필요) ═══
+• 가지급금 이력: ${c.note?.includes('가지급금')?'있음 ⚠️':'특이사항 없음'}
+${c.note ? '• 업체 메모: ' + c.note : ''}
+${extra ? '• 추가 요청: ' + extra : ''}
+
+═══ 검토 요청 항목 ═══
+1. 계정과목 오류: 더존 AI가 잘못 분류했을 가능성이 있는 항목을 찾아 올바른 계정과목을 제안해주세요.
+2. 비용 이상 패턴: 전월 대비 급격히 증가하거나 감소한 비용 항목을 지적해주세요.
+3. 접대비 한도: 골프장·유흥업소 관련 거래가 있는지 확인하고, 접대비 한도 초과 위험을 알려주세요.
+4. 가지급금 위험 거래: 대표이사 관련 현금 출금 또는 개인성 지출이 혼입된 가능성이 있는 항목을 표시해주세요.
+5. 세금계산서 누락 의심: 매입 규모 대비 세금계산서 수취가 적은 경우 누락 가능성을 알려주세요.
+6. 기타: 세무사가 반드시 확인해야 할 리스크 항목을 정리해주세요.
+
+═══ 출력 형식 ═══
+- 이상 항목 발견 시: [항목명] | [계정과목] | [금액] | [이상 사유] | [권고 처리 방법] 형태로 표로 정리
+- 이상 없는 항목은 생략
+- 최종 요약: 총 N건의 이상 항목 발견, 심각도 높은 순서로 정렬
+- 직원이 최종 확인해야 할 우선순위 체크리스트로 마무리해주세요.`;
+
+  outEl.value = prompt;
+  if (copyBtn) copyBtn.disabled = false;
+}
+function copyAIPrompt() {
+  const outEl = document.getElementById('ai-prompt-output');
+  if (!outEl || !outEl.value) return;
+  navigator.clipboard.writeText(outEl.value).then(() => {
+    const btn = document.getElementById('ai-copy-btn');
+    if (btn) { const orig = btn.textContent; btn.textContent = '✅ 복사 완료!'; setTimeout(()=>btn.textContent=orig, 2000); }
+  }).catch(() => {
+    outEl.select(); document.execCommand('copy');
+    alert('프롬프트가 복사되었습니다.');
+  });
+}
+
+// ════════════════════════════════════════════════════
 function renderSettings() {
   const repColors2 = ['#1F3864','#375623','#7c3aed','#b45309'];
   const isRep = currentUser?.role === 'representative';
@@ -1997,7 +4114,12 @@ function initFirebase() {
         fbSave();
         return;
       }
-      const keys = ['clients','logs','staff','approvals','checks'];
+      // Firebase 데이터가 구버전이면 → 로컬 마이그레이션 데이터를 Firebase에 업로드 후 리턴
+      if ((data.data_ver || 0) < DATA_VER) {
+        fbSave();
+        return;
+      }
+      const keys = ['clients','logs','staff','approvals','checks','leads','dailyReports','kpiLogs'];
       keys.forEach(k => { if (data[k] !== undefined) db[k] = data[k]; });
       // localStorage 캐시도 갱신
       Object.keys(KEYS).forEach(k => localStorage.setItem(KEYS[k], JSON.stringify(db[k])));
@@ -2022,11 +4144,15 @@ function fbSave() {
   if (!fbDb) return;
   _fbSyncing = true;
   fbDb.ref('seowol').set({
-    clients:   db.clients   || [],
-    logs:      db.logs      || [],
-    staff:     db.staff     || [],
-    approvals: db.approvals || [],
-    checks:    db.checks    || [],
+    clients:      db.clients      || [],
+    logs:         db.logs         || [],
+    staff:        db.staff        || [],
+    approvals:    db.approvals    || [],
+    checks:       db.checks       || [],
+    leads:        db.leads        || [],
+    dailyReports: db.dailyReports || [],
+    kpiLogs:      db.kpiLogs      || [],
+    data_ver:     DATA_VER,
   }).then(() => {
     setTimeout(() => { _fbSyncing = false; }, 500);
   }).catch(err => {
@@ -2086,17 +4212,22 @@ function refreshCurrentSection() {
   if (!active || !currentUser) return;
   const id = active.id.replace('section-', '');
   const map = {
-    dashboard:  renderDashboard,
-    org:        renderOrg,
-    approval:   () => renderApproval(currentApprTab),
-    allclients: renderAllClients,
-    clients:    renderClients,
-    worklog:    renderWorkLog,
-    checklist:  renderChecklist,
-    deadlines:  renderUndone,
-    performance:() => { if (currentUser?.role === 'representative') renderPerformance(); },
-    docs:       renderDocs,
-    settings:   renderSettings,
+    dashboard:   renderDashboard,
+    org:         renderOrg,
+    approval:    () => renderApproval(currentApprTab),
+    allclients:  renderAllClients,
+    clients:     renderClients,
+    worklog:     renderWorkLog,
+    checklist:   renderChecklist,
+    deadlines:   renderUndone,
+    pipeline:    () => { if (currentUser?.role === 'representative') renderPipeline(); },
+    dailyreport: renderDailyReport,
+    kpi:         () => { if (currentUser?.role === 'representative') renderKPI(); },
+    finance:     () => { if (currentUser?.role === 'representative') renderFinance(); },
+    aireview:    renderAIReview,
+    performance: () => { if (currentUser?.role === 'representative') renderPerformance(); },
+    docs:        renderDocs,
+    settings:    renderSettings,
   };
   if (map[id]) map[id]();
 }
