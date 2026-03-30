@@ -817,7 +817,7 @@ if (db.staff.length === 0) {
 }
 
 // ── 초기 업체 데이터 ── (DATA_VER 변경 시 강제 덮어쓰기)
-const DATA_VER = 2;
+const DATA_VER = 3;
 if (Number(localStorage.getItem('sw3_data_ver') || 0) < DATA_VER) {
   db.clients = [
   {
@@ -3434,6 +3434,11 @@ function initFirebase() {
         fbSave();
         return;
       }
+      // Firebase 데이터가 구버전이면 → 로컬 마이그레이션 데이터를 Firebase에 업로드 후 리턴
+      if ((data.data_ver || 0) < DATA_VER) {
+        fbSave();
+        return;
+      }
       const keys = ['clients','logs','staff','approvals','checks'];
       keys.forEach(k => { if (data[k] !== undefined) db[k] = data[k]; });
       // localStorage 캐시도 갱신
@@ -3464,6 +3469,7 @@ function fbSave() {
     staff:     db.staff     || [],
     approvals: db.approvals || [],
     checks:    db.checks    || [],
+    data_ver:  DATA_VER,
   }).then(() => {
     setTimeout(() => { _fbSyncing = false; }, 500);
   }).catch(err => {
