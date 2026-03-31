@@ -973,11 +973,16 @@
                 }
 
                 // Prepare upload record
+                const monthVal = document.getElementById('monthInput').value;
+                const [year, mm] = monthVal.split('-');
+                const folderPath = buildFolderPath(currentClient, year, mm, selectedCategory);
+
                 const uploadRecord = {
                     clientId: currentClient.id,
                     clientName: currentClient.name,
                     category: selectedCategory,
-                    month: document.getElementById('monthInput').value,
+                    month: monthVal,
+                    folderPath: folderPath,
                     files: uploadedFiles,
                     memo: document.getElementById('memoInput').value || '',
                     uploadedAt: new Date().toISOString(),
@@ -988,6 +993,9 @@
                 updateProgress(75);
                 const uploadsRef = db.ref('seowol/uploads');
                 await uploadsRef.push(uploadRecord);
+
+                // Power Automate 연동 (webhook URL 설정 시 자동 전송)
+                await sendToSharePoint(uploadRecord);
 
                 updateProgress(100);
 
@@ -1106,6 +1114,55 @@
             const hours = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
             return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+        /**
+         * SharePoint 폴더 경로 자동 생성
+         * 형식: [No]_거래처명/연도/월/유형
+         * 예: 001_테스트법인/2026/03/매출
+         */
+        function buildFolderPath(client, year, month, category) {
+            const paddedId = String(client.id).padStart(3, '0');
+            const safeName = client.name.replace(/[\\/:*?"<>|]/g, '_');
+            const folderName = `${paddedId}_${safeName}`;
+            const mm = String(month).padStart(2, '0');
+            return `${folderName}/${year}/${mm}/${category}`;
+        }
+
+        /**
+         * Power Automate webhook으로 파일 전송
+         * → SharePoint에 자동 저장 & 폴더 자동 생성
+         * ※ POWER_AUTOMATE_URL 설정 후 활성화됨
+         */
+        const POWER_AUTOMATE_URL = ''; // ← Power Automate HTTP 트리거 URL 입력
+
+        async function sendToSharePoint(record) {
+            if (!POWER_AUTOMATE_URL) return; // URL 미설정시 스킵
+
+            try {
+                for (const file of record.files) {
+                    const payload = {
+                        folderPath: record.folderPath,
+                        fileName: file.name,
+                        fileContent: file.base64Data,
+                        clientId: record.clientId,
+                        clientName: record.clientName,
+                        category: record.category,
+                        month: record.month,
+                        uploadedAt: record.uploadedAt
+                    };
+
+                    await fetch(POWER_AUTOMATE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+                console.log('SharePoint 전송 완료:', record.folderPath);
+            } catch (err) {
+                console.warn('SharePoint 전송 실패 (Firebase 저장은 완료):', err);
+                // SharePoint 실패해도 Firebase에는 이미 저장됨 → 에러 표시 안함
+            }
         }
     </script>
 </body>

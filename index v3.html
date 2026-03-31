@@ -561,6 +561,26 @@ tr:hover td{background:#f8fafc;}
       <button class="btn btn-y" onclick="generateReminderMessage()" style="width:100%;">리마인드 메시지 생성</button>
     </div>
   </div>
+
+  <!-- SharePoint 폴더 관리 -->
+  <div class="card" style="margin-top:18px;">
+    <div class="card-title">📁 SharePoint 폴더 관리</div>
+    <p style="font-size:12.5px;color:#6b7280;margin-bottom:14px;">기장 업체별 SharePoint 폴더 구조를 자동 생성·관리합니다. (<code>[No]_거래처명/연도/월/유형</code>)</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <button class="btn btn-p btn-sm" onclick="generateFolderStructure()">📂 전체 폴더 구조 생성</button>
+      <button class="btn btn-o btn-sm" onclick="exportFolderList()">📋 폴더 목록 복사</button>
+      <button class="btn btn-y btn-sm" onclick="triggerPAFolderCreation()">⚡ Power Automate 일괄 생성</button>
+    </div>
+    <div id="folder-status-area" style="display:none;">
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;max-height:300px;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <span style="font-size:12.5px;font-weight:700;color:var(--navy);" id="folder-count-label"></span>
+          <span style="font-size:11px;color:#9ca3af;" id="folder-gen-date"></span>
+        </div>
+        <div id="folder-tree-list" style="font-size:12px;font-family:'Consolas','D2Coding',monospace;color:#374151;line-height:1.8;"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 
@@ -5059,6 +5079,172 @@ function copyToClipboard(text) {
     document.body.removeChild(textarea);
     alert('업로드 링크가 복사되었습니다: ' + fullUrl);
   });
+}
+
+/* ═══════════════════════════════════════
+   SharePoint 폴더 자동 생성 관리
+   ═══════════════════════════════════════ */
+
+const CATEGORIES = ['매출', '매입', '급여', '경비', '기타'];
+const PA_FOLDER_URL = ''; // ← Power Automate 폴더 생성 전용 HTTP 트리거 URL
+
+/**
+ * 전체 기장업체 폴더 구조 생성 (화면 표시)
+ */
+function generateFolderStructure() {
+  const allClients = db.clients || [];
+  const bookingClients = allClients.filter(c =>
+    c.contractType === '기장' && c.status === '정상'
+  );
+
+  if (bookingClients.length === 0) {
+    alert('기장 업체가 없습니다.');
+    return;
+  }
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  const folderLines = [];
+  bookingClients.forEach(client => {
+    const paddedId = String(client.id).padStart(3, '0');
+    const safeName = client.name.replace(/[\\/:*?"<>|]/g, '_');
+    const root = `${paddedId}_${safeName}`;
+
+    folderLines.push(`📁 ${root}/`);
+    folderLines.push(`  📂 ${year}/`);
+    for (let m = 1; m <= currentMonth; m++) {
+      const mm = String(m).padStart(2, '0');
+      folderLines.push(`    📂 ${mm}/`);
+      CATEGORIES.forEach(cat => {
+        folderLines.push(`      📄 ${cat}/`);
+      });
+    }
+  });
+
+  const area = document.getElementById('folder-status-area');
+  area.style.display = 'block';
+  document.getElementById('folder-count-label').textContent =
+    `총 ${bookingClients.length}개 업체 · ${year}년 1~${currentMonth}월`;
+  document.getElementById('folder-gen-date').textContent =
+    `생성일시: ${new Date().toLocaleString('ko-KR')}`;
+  document.getElementById('folder-tree-list').innerHTML =
+    folderLines.map(l => `<div>${l}</div>`).join('');
+
+  // 폴더 구조 데이터를 window에 저장 (복사/PA전송용)
+  window._folderStructureData = bookingClients.map(client => {
+    const paddedId = String(client.id).padStart(3, '0');
+    const safeName = client.name.replace(/[\\/:*?"<>|]/g, '_');
+    return {
+      clientId: client.id,
+      clientName: client.name,
+      folderRoot: `${paddedId}_${safeName}`,
+      year: year,
+      months: Array.from({length: currentMonth}, (_, i) => String(i + 1).padStart(2, '0')),
+      categories: CATEGORIES
+    };
+  });
+}
+
+/**
+ * 폴더 목록 텍스트로 복사 (수동 생성용)
+ */
+function exportFolderList() {
+  if (!window._folderStructureData) {
+    generateFolderStructure();
+  }
+
+  const data = window._folderStructureData;
+  if (!data || data.length === 0) {
+    alert('먼저 폴더 구조를 생성해주세요.');
+    return;
+  }
+
+  const lines = [];
+  lines.push('=== 세무법인 서월 SharePoint 폴더 구조 ===');
+  lines.push(`생성일: ${new Date().toLocaleString('ko-KR')}`);
+  lines.push('');
+
+  data.forEach(item => {
+    item.months.forEach(mm => {
+      item.categories.forEach(cat => {
+        lines.push(`세무법인서월/${item.folderRoot}/${item.year}/${mm}/${cat}`);
+      });
+    });
+  });
+
+  lines.push('');
+  lines.push(`총 폴더 수: ${data.length * data[0].months.length * CATEGORIES.length}개`);
+
+  const text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    alert(`폴더 목록이 클립보드에 복사되었습니다.\n총 ${data.length}개 업체, ${data.length * data[0].months.length * CATEGORIES.length}개 폴더`);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('폴더 목록이 클립보드에 복사되었습니다.');
+  });
+}
+
+/**
+ * Power Automate를 통한 SharePoint 폴더 일괄 생성
+ */
+async function triggerPAFolderCreation() {
+  if (!PA_FOLDER_URL) {
+    alert('Power Automate 폴더 생성 URL이 설정되지 않았습니다.\n\n세팅 가이드를 참고하여 Power Automate에서 HTTP 트리거 플로우를 만든 후,\nPA_FOLDER_URL 변수에 URL을 입력해주세요.');
+    return;
+  }
+
+  if (!window._folderStructureData) {
+    generateFolderStructure();
+  }
+
+  const data = window._folderStructureData;
+  if (!data || data.length === 0) {
+    alert('기장 업체가 없습니다.');
+    return;
+  }
+
+  if (!confirm(`${data.length}개 업체의 SharePoint 폴더를 일괄 생성합니다.\n계속하시겠습니까?`)) return;
+
+  const statusArea = document.getElementById('folder-tree-list');
+  statusArea.innerHTML = '<div style="color:var(--blue);font-weight:700;">⏳ 폴더 생성 중...</div>';
+
+  let success = 0;
+  let fail = 0;
+
+  for (const item of data) {
+    try {
+      await fetch(PA_FOLDER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'createFolders',
+          folderRoot: item.folderRoot,
+          clientId: item.clientId,
+          clientName: item.clientName,
+          year: item.year,
+          months: item.months,
+          categories: item.categories
+        })
+      });
+      success++;
+    } catch (err) {
+      fail++;
+      console.warn('폴더 생성 실패:', item.clientName, err);
+    }
+
+    statusArea.innerHTML = `<div style="color:var(--blue);">⏳ 진행 중... ${success + fail}/${data.length} (성공: ${success}, 실패: ${fail})</div>`;
+  }
+
+  statusArea.innerHTML = `<div style="color:${fail === 0 ? 'var(--green)' : 'var(--red)'}; font-weight:700;">
+    ✅ 완료 — 성공: ${success}건, 실패: ${fail}건
+  </div>`;
 }
 
 </script>
