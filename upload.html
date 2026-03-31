@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세무법인 서월 - 자료 업로드</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --navy: #1F3864;
+            --blue: #2E75B6;
+            --light-blue: #DEEAF1;
+            --gray: #666;
+            --light-gray: #f5f5f5;
+            --border: #ddd;
+            --success: #4CAF50;
+            --error: #f44336;
+            --warning: #ff9800;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', 'Roboto', sans-serif;
+            background: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--navy);
+            color: white;
+            padding: 24px 16px;
+            margin: -16px -16px 24px -16px;
+            text-align: center;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Client Info */
+        .client-info {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border-left: 4px solid var(--blue);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .client-info .label {
+            font-size: 12px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .client-info .name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .spinner {
+            border: 3px solid var(--light-blue);
+            border-top: 3px solid var(--blue);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Form Section */
+        .form-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--navy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title span {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: var(--blue);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+
+        /* Category Selection */
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        @media (min-width: 480px) {
+            .category-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        .category-btn {
+            padding: 12px 12px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: #333;
+        }
+
+        .category-btn:hover {
+            border-color: var(--blue);
+            background: var(--light-blue);
+        }
+
+        .category-btn.active {
+            background: var(--blue);
+            color: white;
+            border-color: var(--blue);
+        }
+
+        /* Month Picker */
+        .month-picker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .month-picker input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .month-picker input:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(46, 117, 182, 0.1);
+        }
+
+        /* File Upload */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 32px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--light-gray);
+        }
+
+        .upload-area:hover {
+            border-color: var(--blue);
+            background: var(--light-blue);
+        }
+
+        .upload-area.active {
+            border-color: var(--blue);
+            background: var(--light-blue);
+            box-shadow: 0 0 0 3px rgba(46, 117, 182, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            color: var(--navy);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            background: var(--light-gray);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 4px;
+        }
+
+        .file-remove {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--error);
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 8px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .file-remove:hover {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        .file-warning {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: #856404;
+        }
+
+        /* Memo */
+        .memo-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            margin-top: 8px;
+        }
+
+        .memo-input:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(46, 117, 182, 0.1);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1e5fa8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(46, 117, 182, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--navy);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            border-color: var(--blue);
+        }
+
+        /* Messages */
+        .message {
+            padding: 14px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid var(--success);
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid var(--error);
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        /* Upload History */
+        .history-section {
+            margin-top: 32px;
+        }
+
+        .history-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--navy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 24px;
+            color: var(--gray);
+            font-size: 13px;
+            background: var(--light-gray);
+            border-radius: 6px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-item {
+            background: white;
+            padding: 14px;
+            border-radius: 6px;
+            border-left: 4px solid var(--light-blue);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 6px;
+        }
+
+        .history-category {
+            display: inline-block;
+            background: var(--light-blue);
+            color: var(--navy);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .history-files {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        /* Success State */
+        .success-state {
+            text-align: center;
+            padding: 40px 0;
+            display: none;
+        }
+
+        .success-state.show {
+            display: block;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--success);
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            animation: scaleIn 0.4s ease;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-message {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+
+        .success-details {
+            font-size: 13px;
+            color: var(--gray);
+            margin-bottom: 24px;
+        }
+
+        /* Form Container */
+        .form-container {
+            display: none;
+        }
+
+        .form-container.show {
+            display: block;
+        }
+
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 40px 0;
+            display: none;
+        }
+
+        .error-state.show {
+            display: block;
+        }
+
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .error-message {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--error);
+            margin-bottom: 8px;
+        }
+
+        .error-details {
+            font-size: 13px;
+            color: var(--gray);
+            margin-bottom: 24px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--light-gray);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--blue);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                margin: -12px -12px 16px -12px;
+                padding: 20px 12px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .form-section {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+
+            .btn {
+                padding: 12px 12px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>세무법인 서월</h1>
+            <p>세무 자료 업로드</p>
+        </div>
+
+        <!-- Client Info -->
+        <div id="clientInfo" class="client-info" style="display: none;">
+            <div class="label">귀사명</div>
+            <div class="name" id="clientName"></div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-state">
+            <div class="spinner"></div>
+            <div class="loading-text">정보를 불러오고 있습니다...</div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="error-state">
+            <div class="error-icon">⚠️</div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="error-details" id="errorDetails"></div>
+        </div>
+
+        <!-- Form -->
+        <div id="formContainer" class="form-container">
+            <!-- Messages -->
+            <div id="successMessage" class="message success"></div>
+            <div id="errorMessage" class="message error"></div>
+
+            <!-- Progress -->
+            <div id="progressContainer" class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-text">업로드 중입니다... (<span id="progressPercent">0</span>%)</div>
+            </div>
+
+            <!-- Category Section -->
+            <form id="uploadForm">
+                <div class="form-section">
+                    <div class="section-title">
+                        <span>1</span>
+                        자료 유형
+                    </div>
+                    <div class="category-grid">
+                        <button type="button" class="category-btn" data-category="매출">매출</button>
+                        <button type="button" class="category-btn" data-category="매입">매입</button>
+                        <button type="button" class="category-btn" data-category="급여">급여</button>
+                        <button type="button" class="category-btn" data-category="경비">경비</button>
+                        <button type="button" class="category-btn" data-category="기타">기타</button>
+                    </div>
+                </div>
+
+                <!-- Month Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span>2</span>
+                        귀속월
+                    </div>
+                    <div class="month-picker">
+                        <input type="month" id="monthInput" required>
+                    </div>
+                </div>
+
+                <!-- File Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span>3</span>
+                        파일 첨부 (최대 10개, 각 7MB 이하)
+                    </div>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📎</div>
+                        <div class="upload-text">클릭하거나 파일을 드래그해주세요</div>
+                        <div class="upload-hint">최대 10개 파일, 각 7MB 이하</div>
+                    </div>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.zip,.hwp">
+                    <div id="fileList" class="file-list"></div>
+                    <div id="fileWarning" class="file-warning" style="display: none;"></div>
+                </div>
+
+                <!-- Memo Section -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span>4</span>
+                        메모 (선택사항)
+                    </div>
+                    <textarea id="memoInput" class="memo-input" placeholder="특별한 사항이나 문의사항을 적어주세요..." maxlength="500"></textarea>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="button-group">
+                    <button type="submit" id="submitBtn" class="btn btn-primary" disabled>자료 업로드</button>
+                    <button type="reset" class="btn btn-secondary">초기화</button>
+                </div>
+            </form>
+
+            <!-- Upload History -->
+            <div class="history-section">
+                <h3>📋 최근 업로드 내역</h3>
+                <div id="historyContainer"></div>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="successState" class="success-state">
+            <div class="success-icon">✓</div>
+            <div class="success-message">업로드 완료되었습니다!</div>
+            <div class="success-details">담당 세무사가 곧 검토한 후 연락드리겠습니다.</div>
+            <button class="btn btn-primary" onclick="resetForm()" style="margin-top: 16px; width: 100%;">
+                추가 자료 업로드
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBD2JGUG62d0srReev2C5NqI20giooJWdc",
+            authDomain: "seowoltax-7cdda.firebaseapp.com",
+            databaseURL: "https://seowoltax-7cdda-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "seowoltax-7cdda",
+            storageBucket: "seowoltax-7cdda.firebasestorage.app",
+            messagingSenderId: "552768151991",
+            appId: "1:552768151991:web:e1ec9470f97177e23ac832"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // State
+        let currentClient = null;
+        let selectedFiles = [];
+        let selectedCategory = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const clientId = params.get('id');
+
+            if (!clientId) {
+                showError('잘못된 접속 링크입니다', '담당 세무사에게 문의해주세요.');
+                return;
+            }
+
+            await loadClient(clientId);
+            setupEventListeners();
+            setDefaultMonth();
+            loadUploadHistory();
+        });
+
+        // Load Client Info
+        async function loadClient(clientId) {
+            try {
+                const snapshot = await db.ref('seowol/clients').once('value');
+                const clients = snapshot.val();
+
+                if (!clients || !Array.isArray(clients)) {
+                    showError('등록되지 않은 업체입니다', '');
+                    return;
+                }
+
+                const client = clients.find(c => c && c.id == clientId);
+                if (!client) {
+                    showError('등록되지 않은 업체입니다', '');
+                    return;
+                }
+
+                currentClient = client;
+                document.getElementById('clientName').textContent = client.name;
+                document.getElementById('clientInfo').style.display = 'block';
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('formContainer').classList.add('show');
+            } catch (error) {
+                console.error('Firebase Error:', error);
+                showError('서버 연결에 실패했습니다', '잠시 후 다시 시도해주세요.');
+            }
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Category buttons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedCategory = btn.dataset.category;
+                    updateSubmitButton();
+                });
+            });
+
+            // File upload
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('active');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('active');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('active');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+
+            // Month input
+            document.getElementById('monthInput').addEventListener('change', updateSubmitButton);
+
+            // Form submit
+            document.getElementById('uploadForm').addEventListener('submit', handleSubmit);
+
+            // Form reset
+            document.getElementById('uploadForm').addEventListener('reset', () => {
+                selectedFiles = [];
+                selectedCategory = null;
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('fileList').innerHTML = '';
+                document.getElementById('fileWarning').style.display = 'none';
+                document.getElementById('memoInput').value = '';
+                updateSubmitButton();
+            });
+        }
+
+        // Handle Files
+        function handleFiles(files) {
+            const newFiles = Array.from(files).filter(file => {
+                if (selectedFiles.length >= 10) {
+                    showMessage('최대 10개까지만 업로드 가능합니다', 'error');
+                    return false;
+                }
+                if (file.size > 7 * 1024 * 1024) {
+                    showMessage('7MB 이하 파일만 업로드 가능합니다', 'error');
+                    return false;
+                }
+                return true;
+            });
+
+            selectedFiles.push(...newFiles);
+            renderFileList();
+            updateSubmitButton();
+            checkTotalSize();
+        }
+
+        // Render File List
+        function renderFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = selectedFiles.map((file, index) => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${formatFileSize(file.size)}</div>
+                    </div>
+                    <button type="button" class="file-remove" onclick="removeFile(${index})">제거</button>
+                </div>
+            `).join('');
+        }
+
+        // Remove File
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+            updateSubmitButton();
+            checkTotalSize();
+        }
+
+        // Check Total Size
+        function checkTotalSize() {
+            const total = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+            const warning = document.getElementById('fileWarning');
+            if (total > 5 * 1024 * 1024) {
+                warning.textContent = '⚠️ 5MB 이상의 파일이 업로드됩니다. 완료까지 시간이 걸릴 수 있습니다.';
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+        }
+
+        // Update Submit Button
+        function updateSubmitButton() {
+            const month = document.getElementById('monthInput').value;
+            const canSubmit = selectedCategory && month && selectedFiles.length > 0;
+            document.getElementById('submitBtn').disabled = !canSubmit;
+        }
+
+        // Set Default Month
+        function setDefaultMonth() {
+            const today = new Date();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = today.getFullYear();
+            document.getElementById('monthInput').value = `${year}-${month}`;
+        }
+
+        // Handle Submit
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            if (!selectedFiles.length) {
+                showMessage('파일을 첨부해주세요', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+
+            try {
+                // Show progress
+                const progressContainer = document.getElementById('progressContainer');
+                progressContainer.classList.add('show');
+
+                // Convert files to base64
+                const uploadedFiles = [];
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    const base64 = await fileToBase64(file);
+                    uploadedFiles.push({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        base64Data: base64
+                    });
+
+                    // Update progress
+                    const percent = Math.round(((i + 1) / selectedFiles.length) * 50);
+                    updateProgress(percent);
+                }
+
+                // Prepare upload record
+                const uploadRecord = {
+                    clientId: currentClient.id,
+                    clientName: currentClient.name,
+                    category: selectedCategory,
+                    month: document.getElementById('monthInput').value,
+                    files: uploadedFiles,
+                    memo: document.getElementById('memoInput').value || '',
+                    uploadedAt: new Date().toISOString(),
+                    status: 'new'
+                };
+
+                // Save to Firebase
+                updateProgress(75);
+                const uploadsRef = db.ref('seowol/uploads');
+                await uploadsRef.push(uploadRecord);
+
+                updateProgress(100);
+
+                // Show success
+                setTimeout(() => {
+                    progressContainer.classList.remove('show');
+                    document.getElementById('formContainer').classList.remove('show');
+                    document.getElementById('successState').classList.add('show');
+                    loadUploadHistory();
+                }, 500);
+
+            } catch (error) {
+                console.error('Upload Error:', error);
+                showMessage('업로드 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+                submitBtn.disabled = false;
+                document.getElementById('progressContainer').classList.remove('show');
+            }
+        }
+
+        // File to Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Update Progress
+        function updateProgress(percent) {
+            document.getElementById('progressPercent').textContent = percent;
+            document.querySelector('.progress-fill').style.width = percent + '%';
+        }
+
+        // Load Upload History
+        async function loadUploadHistory() {
+            try {
+                const snapshot = await db.ref('seowol/uploads').once('value');
+                const uploads = snapshot.val();
+                const historyContainer = document.getElementById('historyContainer');
+
+                if (!uploads) {
+                    historyContainer.innerHTML = '<div class="history-empty">아직 업로드한 자료가 없습니다.</div>';
+                    return;
+                }
+
+                const clientUploads = Object.values(uploads)
+                    .filter(u => u && u.clientId == currentClient.id)
+                    .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
+                    .slice(0, 10);
+
+                if (clientUploads.length === 0) {
+                    historyContainer.innerHTML = '<div class="history-empty">아직 업로드한 자료가 없습니다.</div>';
+                    return;
+                }
+
+                historyContainer.innerHTML = clientUploads.map(upload => `
+                    <div class="history-item">
+                        <div class="history-date">${formatDateTime(upload.uploadedAt)}</div>
+                        <div class="history-category">${upload.category} / ${upload.month}</div>
+                        <div class="history-files">${upload.files.length}개 파일 (${upload.files.reduce((sum, f) => sum + f.size, 0) > 0 ? formatFileSize(upload.files.reduce((sum, f) => sum + f.size, 0)) : '0B'})</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('History Load Error:', error);
+                document.getElementById('historyContainer').innerHTML = '<div class="history-empty">내역을 불러올 수 없습니다.</div>';
+            }
+        }
+
+        // Reset Form
+        function resetForm() {
+            document.getElementById('formContainer').classList.add('show');
+            document.getElementById('successState').classList.remove('show');
+            document.getElementById('uploadForm').reset();
+            selectedFiles = [];
+            selectedCategory = null;
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('fileList').innerHTML = '';
+            setDefaultMonth();
+            updateSubmitButton();
+        }
+
+        // Show Error
+        function showError(message, details) {
+            const errorState = document.getElementById('errorState');
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorDetails').textContent = details;
+            errorState.classList.add('show');
+        }
+
+        // Show Message
+        function showMessage(message, type) {
+            const messageEl = document.getElementById(type === 'error' ? 'errorMessage' : 'successMessage');
+            messageEl.textContent = message;
+            messageEl.classList.add('show');
+            setTimeout(() => messageEl.classList.remove('show'), 3000);
+        }
+
+        // Format File Size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + sizes[i];
+        }
+
+        // Format DateTime
+        function formatDateTime(isoString) {
+            const date = new Date(isoString);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+    </script>
+</body>
+</html>
